@@ -1,0 +1,39 @@
+package com.park.einvoice.common;
+
+import java.net.URL;
+import java.util.Date;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.aliyun.oss.OSSClient;
+import com.park.einvoice.common.properties.ImageUrl;
+
+public class ImageTools {
+
+	@Autowired
+	private static ImageUrl imageUrl;
+	
+	/**
+	 * OSS加密图片路径 
+	 */
+	public static String setBetaImage(String arg){
+		
+		String accessKeyId = imageUrl.getAccessKeyId();
+		String accessKeySecret = imageUrl.getAccessKeySecret();
+		String endpoint = imageUrl.getEndpoint();
+
+		OSSClient client = new OSSClient(endpoint, accessKeyId, accessKeySecret);
+		
+		String bucketName = imageUrl.getBucketName();
+		String key = arg;
+
+		// 设置URL过期时间为1小时
+		Date expiration = new Date(new Date().getTime() + 3600 * 1000);
+
+		// 生成URL
+		URL url = client.generatePresignedUrl(bucketName, key, expiration);
+		
+		return url.toString();	
+	}
+	
+}

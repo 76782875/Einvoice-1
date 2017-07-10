@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.park.einvoice.dao.eih5.OrderInvoiceDao">
+
+	<select id="selectOrderInvoiceInfo" resultMap="orderInvoiceStatusMap">
+		SELECT order_num, name, park.cp_park_id, plate_number, orderinfo.cost_after, SUM(invoice.invoice_amount) hasInvoice 
+		FROM cp_park park 
+		JOIN cp_order_info orderinfo 
+		ON park.cp_park_id = orderinfo.cp_park_id 
+		LEFT JOIN cc_ei_tradeno_serialno tradeinvoice 
+		ON order_num = tradeinvoice.trade_no OR tradeinvoice.trade_no IN (
+			SELECT order_num_pay FROM cp_order_pay_record WHERE order_num = order_num
+		)
+		LEFT JOIN cc_ei_blue_items invoice
+		ON tradeinvoice.invoice_req_serial_no = invoice.invoice_req_serial_no
+		WHERE order_num = #{tradeNo}
+	</select>
+	
+	<resultMap type="hashmap" id="orderInvoiceStatusMap">
+		<result property="tradeNo" column="order_num" javaType="string"></result>
+		<result property="parkId" column="cp_park_id" javaType="string"></result>
+		<result property="parkName" column="name" javaType="string"></result>
+		<result property="plateNumber" column="plate_number" javaType="string"></result>
+		<result property="costAfter" column="cost_after" javaType="string"></result>
+		<result property="hasInvoice" column="hasInvoice" javaType="string"></result>
+	</resultMap>
+	
+	<select id="selectIsRegEnterprise" resultType="int">
+		SELECT COUNT(*) FROM cc_ei_enterprise ent 
+		LEFT JOIN cc_ei_enterprise_park entpark
+		ON ent.enterprise_code = entpark.enterprise_code 
+		LEFT JOIN cp_order_info ord 
+		ON entpark.cp_park_id = ord.cp_park_id 
+		WHERE operate_type = 2 AND ord.order_num = #{tradeNo}
+	</select>
+	
+</mapper>

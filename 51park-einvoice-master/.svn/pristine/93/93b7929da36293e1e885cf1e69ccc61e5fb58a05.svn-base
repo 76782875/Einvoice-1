@@ -1,0 +1,21 @@
+package com.park.eih5.dao;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.park.einvoice.dao.mybatis.MyBatisRepository;
+
+@MyBatisRepository
+@Repository(value="hasInvoiceDao")
+public interface HasInvoiceDao {
+
+	/**
+	 * 获取已经开票的发票列表数据
+	 * @param tradeNo 传入主订单号
+	 * @return 返回已开票的发票列表
+	 */
+	List<Map<String, String>> selectHasInvoiceList(String tradeNo);
+
+}

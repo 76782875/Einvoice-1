@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.park.einvoice.dao.SerialNoDao">
+
+	<select id="selectAllSerialNo" resultType="String">
+		SELECT serial_no FROM cc_serial
+	</select>
+	
+	<insert id="insertSerialNo">
+		INSERT INTO cc_serial(serial_no) VALUES(#{serialNo})
+	</insert>
+	
+	<delete id="deleteSerialNo">
+		DELETE FROM cc_serial WHERE serial_no = #{serialNo}
+	</delete>
+
+</mapper>

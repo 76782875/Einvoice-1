@@ -1,0 +1,137 @@
+package com.park.einvoice.service.impl;
+
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.park.einvoice.common.DataChangeTools;
+import com.park.einvoice.common.DateTools;
+import com.park.einvoice.common.HttpTools;
+import com.park.einvoice.common.OpenApiTools;
+import com.park.einvoice.common.ResultTools;
+import com.park.einvoice.common.constants.CodeConstants;
+import com.park.einvoice.common.properties.Invoice;
+import com.park.einvoice.dao.EnterpriseParkDao;
+import com.park.einvoice.dao.OrderDao;
+import com.park.einvoice.dao.QRCodeDao;
+import com.park.einvoice.domain.response.GetQRCodeResp;
+import com.park.einvoice.service.GetQRCodeService;
+
+@Repository(value="getQRCodeServiceImpl")
+public class GetQRCodeServiceImpl implements GetQRCodeService {
+	private Logger logger =LoggerFactory.getLogger(this.getClass());
+	
+	@Resource(name="enterpriseParkDao")
+	private EnterpriseParkDao enterpriseParkDao;
+	@Resource(name="orderDao")
+	private OrderDao orderDao;
+	@Resource(name="qRCodeDao")
+	private QRCodeDao qRCodeDao;
+	
+	@Autowired
+	private Invoice invoice;
+	private String url4QRCode;
+	private String privateKey;
+	private String ptPublicKey;
+	private String password;
+	private String prefix;
+	private String platformCode;
+	private BigDecimal taxRateVal;
+	private String taxClassCode;
+	private String itemName;
+	private String allowInvoiceCount;
+	private Integer smsFlag;
+	private Integer expireDays;
+
+	@Override
+	public void getInvoiceInfo() {
+		url4QRCode = invoice.getUrl4QRCode();
+		privateKey = invoice.getPrivateKey();
+		ptPublicKey = invoice.getPtPublicKey();
+		password = invoice.getPassword();
+		prefix = invoice.getPrefix();
+		platformCode = invoice.getPlatformCode();
+		taxRateVal = invoice.getTaxRateVal();
+		taxClassCode = invoice.getTaxClassCode();
+		itemName = invoice.getItemName();
+		allowInvoiceCount = invoice.getAllowInvoiceCount();
+		smsFlag = invoice.getSmsFlag();
+		expireDays = invoice.getExpireDays();
+	}
+	
+	@Override
+	public String getQRCode(String paramJson) {
+		getInvoiceInfo();
+		String responseJson = null;
+		GetQRCodeResp getQRCodeResp = new GetQRCodeResp();
+		try {
+			//通过请求参数获取 纳税识别号 企业名称 发票总金额 交易时间
+			Map<String, String> paramMap = DataChangeTools.json2Map(paramJson);
+			Integer parkId = Integer.parseInt(paramMap.get("parkId"));
+			String tradeNo = paramMap.get("tradeNo");
+			String taxpayerNum = enterpriseParkDao.selectTaxpayerNumByParkId(parkId);
+			String enterpriseName = enterpriseParkDao.selectEnterpriseNameByParkId(parkId);
+			BigDecimal invoiceAmount = orderDao.selectAmountByOrderNum(tradeNo);
+			Date tradeTimePre = orderDao.selectCreateTimeByOrderNum(tradeNo);
+			String tradeTime = DateTools.getFormat(tradeTimePre);
+			//通过发票总金额和税率计算单价(税前价)
+			BigDecimal unitPrice = invoiceAmount.divide((taxRateVal).add(new BigDecimal(1)), 2, BigDecimal.ROUND_HALF_UP);
+			//将参数放入map中
+			paramMap.put("taxpayerNum", taxpayerNum);
+			paramMap.put("enterpriseName", enterpriseName);
+			paramMap.put("tradeTime", tradeTime);
+			paramMap.put("itemName", itemName);
+			paramMap.put("taxRateValue", taxRateVal.toString());
+			paramMap.put("taxClassificationCode", taxClassCode);
+			paramMap.put("unitPrice", unitPrice.toString());
+			paramMap.put("quantity", "1");
+			paramMap.put("invoiceAmount", invoiceAmount.toString());
+			paramMap.put("allowInvoiceCount", allowInvoiceCount);
+			paramMap.put("smsFlag", smsFlag.toString());
+			paramMap.put("expireDays", expireDays.toString());
+			//请求时将部分数据插入数据库
+			qRCodeDao.insertQRCodeReq(paramMap);
+			//将map转换为json字符串并发送请求
+			String content = DataChangeTools.bean2gson(paramMap);
+			String buildRequest = new OpenApiTools(password, platformCode, prefix, privateKey).buildRequest(content);
+			logger.info("发送请求：" + buildRequest);
+			String response = HttpTools.postJson(url4QRCode, buildRequest);
+			logger.info("接收回应：" + response);
+			String disposeResponse = new OpenApiTools(password, platformCode, prefix, privateKey).disposeResponse(response, ptPublicKey);
+			logger.info("解析回应内容：" + disposeResponse);
+			Map<String, String> tempMap = DataChangeTools.json2Map(disposeResponse);
+			String tempString = tempMap.get("content");
+			Map<String, String> resultMap = DataChangeTools.json2Map(tempString);
+			//将回应的部分数据插入数据库
+			qRCodeDao.updateQRCodeResp(resultMap);
+			//将回应封装进准备回应给无忧其它应用的对象
+			getQRCodeResp = DataChangeTools.gson2bean(disposeResponse, GetQRCodeResp.class);
+			//将错误码修改为我们自己的错误码
+//			getQRCodeResp.setCode(CodeConstants.成功.getCode());
+//			getQRCodeResp.setMsg(CodeConstants.成功.getContent());
+			//将回应对象转换为json，用data替换掉content
+			String tempJson = DataChangeTools.bean2gson(getQRCodeResp);
+			Map<String, String> jsonMap = DataChangeTools.json2Map(tempJson);
+			jsonMap.put("data", jsonMap.get("content"));
+			jsonMap.remove("content");
+			//生成返回的json字符串
+			responseJson = DataChangeTools.bean2gson(jsonMap);
+			logger.info("回应JSON：" + responseJson);
+			return ResultTools.setObjectResponse(CodeConstants.成功.getCode(), getQRCodeResp);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResultTools.setResponse(CodeConstants.服务器异常.getCode());
+		}
+//		//将回应对象转换为json字符串返回
+//		responseJson = DataChangeTools.bean2gson(getQRCodeResp);
+//		return responseJson;
+	}
+
+}

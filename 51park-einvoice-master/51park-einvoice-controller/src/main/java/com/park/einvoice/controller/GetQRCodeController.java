@@ -1,0 +1,35 @@
+package com.park.einvoice.controller;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.park.einvoice.service.GetQRCodeService;
+
+@Controller
+@RequestMapping("/getQRCode")
+public class GetQRCodeController {
+	
+	@Resource(name="getQRCodeServiceImpl")
+	private GetQRCodeService getQRCodeService;
+	
+	@ResponseBody
+	@RequestMapping(value="/getQRCode", produces = "text/html;charset=UTF-8")
+	public String getQRCode(HttpServletRequest request, HttpServletResponse response){
+		String requestJsonStr = null;
+		requestJsonStr = request.getParameter("params");
+		return getQRCodeService.getQRCode(requestJsonStr);
+	}
+	
+	@ResponseBody
+	@RequestMapping(value="/getQRCodeByMain", produces = "text/html;charset=UTF-8")
+	public String getQRCodeByMain(HttpServletRequest request, HttpServletResponse response){
+		String requestJsonStr = null;
+		requestJsonStr = request.getParameter("params");
+		return getQRCodeService.getQRCodeByMain(requestJsonStr);
+	}
+}

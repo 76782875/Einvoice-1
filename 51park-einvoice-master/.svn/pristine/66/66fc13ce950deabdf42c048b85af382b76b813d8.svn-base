@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.park.einvoice.dao.BlueInvoiceReqHisDao">
+
+	<insert id="insertBlueInvoiceReqHis">
+		INSERT INTO cc_blue_invoice_request_history(trade_no,park_id,invoice_amount,buyer_name
+			<if test="buyer_taxpayer_num != null">,buyer_taxpayer_num</if>
+			<if test="buyer_address != null">,buyer_address</if>
+			<if test="buyer_tel != null">,buyer_tel</if>
+			<if test="buyer_bank_name != null">,buyer_bank_name</if>
+			<if test="buyer_bank_account != null">,buyer_bank_account</if>
+			<if test="casher_name != null">,casher_name</if>
+			<if test="reviewer_name != null">,reviewer_name</if>
+			<if test="taker_name != null">,taker_name</if>
+			<if test="taker_tel != null">,taker_tel</if>
+			<if test="taker_email != null">,taker_email</if>
+		) 
+		VALUES(#{trade_no},#{park_id},#{invoice_amount},#{buyer_name}
+			<if test="buyer_taxpayer_num != null">,#{buyer_taxpayer_num}</if>
+			<if test="buyer_address != null">,#{buyer_address}</if>
+			<if test="buyer_tel != null">,#{buyer_tel}</if>
+			<if test="buyer_bank_name != null">,#{buyer_bank_name}</if>
+			<if test="buyer_bank_account != null">,#{buyer_bank_account}</if>
+			<if test="casher_name != null">,#{casher_name}</if>
+			<if test="reviewer_name != null">,#{reviewer_name}</if>
+			<if test="taker_name != null">,#{taker_name}</if>
+			<if test="taker_tel != null">,#{taker_tel}</if>
+			<if test="taker_email != null">,#{taker_email}</if>
+		)
+	</insert>
+	
+</mapper>

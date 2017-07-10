@@ -1,0 +1,82 @@
+package com.park.einvoice.common;
+
+import java.util.Date;
+import java.util.Properties;
+
+import javax.mail.Authenticator;
+import javax.mail.Message;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+
+public class MailTools {
+	private static final String MAIL_SERVER = "localhost";
+
+	private static final String FROM = "wangyuefei@localhost.com";
+
+	private static final String USERNAME = "wangyuefei";
+
+	private static final String PASSWORD = "wangyuefei123";
+
+	private static final String MAIL_SUBJECT = "无忧停车电子发票";
+
+	private static final String MAIL_CONTENT = "请在点击下方链接下载您的电子发票";
+
+	private static Session mailSession;
+
+	private static Properties prop;
+
+	private static Message message;
+
+	@SuppressWarnings("static-access")
+	public static void sendMail(String email, String downloadUrl) {
+		// 设置邮件服务器
+		prop = System.getProperties();
+		prop.put("mail.smtp.auth", "true");
+		prop.put("mail.smtp.host", MAIL_SERVER);
+		EmailAuthenticator mailauth = new EmailAuthenticator(USERNAME, PASSWORD);
+		// 产生新的Session服务
+		mailSession = mailSession.getDefaultInstance(prop, (Authenticator) mailauth);
+		message = new MimeMessage(mailSession);
+		try {
+			message.setFrom(new InternetAddress(FROM)); // 设置发件人
+			message.setRecipient(Message.RecipientType.TO, new InternetAddress(email));// 设置收件人
+			message.setSubject(MAIL_SUBJECT);// 设置主题
+			message.setContent(MAIL_CONTENT + downloadUrl, "text/plain");// 设置内容
+			message.setSentDate(new Date());// 设置日期
+			Transport tran = mailSession.getTransport("smtp");
+			tran.connect(MAIL_SERVER, USERNAME, PASSWORD);
+			tran.send(message, message.getAllRecipients());
+			tran.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+}
+
+class EmailAuthenticator extends Authenticator {
+	private String m_username = null;
+
+	private String m_userpass = null;
+
+	void setUsername(String username) {
+		m_username = username;
+	}
+
+	void setUserpass(String userpass) {
+		m_userpass = userpass;
+	}
+
+	public EmailAuthenticator(String username, String userpass) {
+		super();
+		setUsername(username);
+		setUserpass(userpass);
+	}
+
+	public PasswordAuthentication getPasswordAuthentication() {
+		return new PasswordAuthentication(m_username, m_userpass);
+	}
+}

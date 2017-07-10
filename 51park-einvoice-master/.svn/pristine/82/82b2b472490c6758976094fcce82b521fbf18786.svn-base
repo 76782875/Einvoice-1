@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.park.einvoice.dao.BlueInvoicePushDao">
+
+	<select id="selectPushByTradeNo" resultType="blueInvoiceResultResponse">
+		SELECT trade_no tradeNo,code invoiceStatus,invoice_req_serial_no invoiceReqSerialNo,
+			security_code securityCode,qr_code qrCode,invoice_code invoiceCode,
+			invoice_no invoiceNo,invoice_pdf invoicePdf,download_url downloadUrl,
+			(no_tax_amount+tax_amount) invoiceAmount
+		FROM cc_ei_blue_push WHERE invoice_req_serial_no = #{invoiceReqSerialNo}
+	</select>
+
+	<select id="selectInvoicePush" resultType="int">
+		SELECT COUNT(*) FROM cc_ei_blue_push 
+		WHERE invoice_req_serial_no = #{invoiceReqSerialNo} 
+		AND code = '0000'
+	</select>
+
+	<insert id="insertInvoicePush">
+		INSERT INTO cc_ei_blue_push(invoice_req_serial_no,code,msg
+			<if test="tradeNo != null">,trade_no</if>
+			<if test="securityCode != null">,security_code</if>
+			<if test="qrCode != null">,qr_code</if>
+			<if test="invoiceCode != null">,invoice_code</if>
+			<if test="invoiceNo != null">,invoice_no</if>
+			<if test="invoiceDate != null">,invoice_date</if>
+			<if test="invoiceType != null">,invoice_type</if>
+			<if test="noTaxAmount != null">,no_tax_amount</if>
+			<if test="taxAmount != null">,tax_amount</if>
+			<if test="invoicePdf != null">,invoice_pdf</if>
+			<if test="downloadUrl != null">,download_url</if>
+		) VALUES(#{invoiceReqSerialNo},#{code},#{msg}
+			<if test="tradeNo != null">,#{tradeNo}</if>
+			<if test="securityCode != null">,#{securityCode}</if>
+			<if test="qrCode != null">,#{qrCode}</if>
+			<if test="invoiceCode != null">,#{invoiceCode}</if>
+			<if test="invoiceNo != null">,#{invoiceNo}</if>
+			<if test="invoiceDate != null">,#{invoiceDate}</if>
+			<if test="invoiceType != null">,#{invoiceType}</if>
+			<if test="noTaxAmount != null">,#{noTaxAmount}</if>
+			<if test="taxAmount != null">,#{taxAmount}</if>
+			<if test="invoicePdf != null">,#{invoicePdf}</if>
+			<if test="downloadUrl != null">,#{downloadUrl}</if>
+		)
+	</insert>
+	
+</mapper>

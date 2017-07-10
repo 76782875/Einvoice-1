@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD  Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+  
+<configuration>  
+<!-- <settings>  
+        <setting name="logPrefix" value="dao."/>  
+</settings>  --> 
+	<!-- 类的别名，定义别名后使用时不需要一大串包名的类全名 -->
+    <typeAliases>
+      <!-- -->
+      <typeAlias type="com.park.einvoice.domain.Demo" alias="demo"/>
+      <typeAlias type="com.park.einvoice.domain.Enterprise" alias="enterprise"/>
+      <typeAlias type="com.park.einvoice.domain.response.GetQRCodeRespContent" alias="getQRCodeRespContent"/>
+      <typeAlias type="com.park.einvoice.domain.BlueInvoiceReq" alias="blueInvoiceReq"/>
+      <typeAlias type="com.park.einvoice.domain.request.BlueInvoiceRequest" alias="blueInvoiceRequest"/>
+      <typeAlias type="com.park.einvoice.domain.response.BlueInvoiceResultResponse" alias="blueInvoiceResultResponse"/>
+      <typeAlias type="com.park.einvoice.domain.vo.EmailInvoice" alias="emailInvoice"/>
+    </typeAliases>
+    
+</configuration>

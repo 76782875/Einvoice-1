@@ -1,0 +1,15 @@
+package com.park.eih5.service;
+
+import org.springframework.stereotype.Repository;
+
+@Repository(value="hasInvoiceService")
+public interface HasInvoiceService {
+
+	/**
+	 * 获取已经开票的发票列表
+	 * @param requestStr 请求字符串，包含主订单号
+	 * @return 返回需要的数据 JSON字符串
+	 */
+	String getHasInvoiceList(String requestStr);
+	
+}

@@ -1,0 +1,255 @@
+package com.park.einvoice.service.impl;
+
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.park.einvoice.common.DataChangeTools;
+import com.park.einvoice.common.DateTools;
+import com.park.einvoice.common.HttpTools;
+import com.park.einvoice.common.OpenApiTools;
+import com.park.einvoice.common.ResultTools;
+import com.park.einvoice.common.constants.CodeConstants;
+import com.park.einvoice.common.constants.InvoiceConstants;
+import com.park.einvoice.common.properties.Invoice;
+import com.park.einvoice.dao.EnterpriseParkDao;
+import com.park.einvoice.dao.OrderDao;
+import com.park.einvoice.dao.QRCodeDao;
+import com.park.einvoice.dao.SubOrderDao;
+import com.park.einvoice.domain.response.GetQRCodeResp;
+import com.park.einvoice.domain.response.GetQRCodeRespContent;
+import com.park.einvoice.service.GetQRCodeService;
+
+@Repository(value="getQRCodeServiceImpl")
+public class GetQRCodeServiceImpl implements GetQRCodeService {
+	private Logger logger =LoggerFactory.getLogger(this.getClass());
+	
+	@Resource(name="enterpriseParkDao")
+	private EnterpriseParkDao enterpriseParkDao;
+	@Resource(name="subOrderDao")
+	private SubOrderDao subOrderDao;
+	@Resource(name="orderDao")
+	private OrderDao orderDao;
+	@Resource(name="qRCodeDao")
+	private QRCodeDao qRCodeDao;
+	
+	@Autowired
+	private Invoice invoice;
+	private String url4QRCode;
+	private String privateKey;
+	private String ptPublicKey;
+	private String password;
+	private String prefix;
+	private String platformCode;
+	private BigDecimal taxRateVal;
+	private String taxClassCode;
+	private String itemName;
+	private String allowInvoiceCount;
+	private Integer smsFlag;
+	private Integer expireDays;
+	private Integer version1;
+	private Integer version2;
+
+	@Override
+	public void getInvoiceInfo() {
+		url4QRCode = invoice.getUrl4QRCode();
+		privateKey = invoice.getPrivateKey();
+		ptPublicKey = invoice.getPtPublicKey();
+		password = invoice.getPassword();
+		prefix = invoice.getPrefix();
+		platformCode = invoice.getPlatformCode();
+		taxRateVal = invoice.getTaxRateVal();
+		taxClassCode = invoice.getTaxClassCode();
+		itemName = invoice.getItemName();
+		allowInvoiceCount = invoice.getAllowInvoiceCount();
+		smsFlag = invoice.getSmsFlag();
+		expireDays = invoice.getExpireDays();
+		version1 = invoice.getVersion1();
+		version2 = invoice.getVersion2();
+	}
+	
+	@Override
+	public String getQRCode(String paramJson) {
+		getInvoiceInfo();
+		logger.info("** 获取开票二维码无忧请求：" + paramJson);
+		try {
+			//通过请求参数获取 纳税识别号 企业名称 发票总金额 交易时间
+			Map<String, String> paramMap = DataChangeTools.json2Map2(paramJson);
+			Integer parkId = Integer.parseInt(paramMap.get("parkId"));
+			//此处的tradeNo为子订单号码
+			String tradeNo = paramMap.get("tradeNo");
+			//校验用户是否多次获取
+			Integer qRCodeId = qRCodeDao.selectIdByTradeNo(tradeNo);
+			if(qRCodeId != null){
+				GetQRCodeRespContent getQRCodeRespContent = qRCodeDao.selectResponseContentById(qRCodeId);
+				//回应
+				return ResultTools.setObjectResponse(CodeConstants.成功.getCode(), getQRCodeRespContent);
+			}
+			String taxpayerNum = enterpriseParkDao.selectTaxpayerNumByParkId(parkId);
+			//检测企业是否注册
+			if(taxpayerNum == null){
+				return ResultTools.setResponse(CodeConstants.企业未注册.getCode());
+			}
+			String enterpriseName = enterpriseParkDao.selectEnterpriseNameByParkId(parkId);
+			BigDecimal invoiceAmount = subOrderDao.selectAmountByOrderNum(tradeNo);
+			Date tradeTimePre = subOrderDao.selectCreateTimeByOrderNum(tradeNo);
+			//校验订单金额是否为null，如果为null，则返回订单号不正确
+			if(invoiceAmount == null){
+				return ResultTools.setResponse(CodeConstants.订单号不正确.getCode());
+			}
+			//如果发票金额为零，则直接返回发票金额不能为零
+			if(invoiceAmount.compareTo(new BigDecimal(0)) == 0){
+				return ResultTools.setResponse(CodeConstants.发票金额不能为零.getCode());
+			}
+			//加上交易时间
+			String tradeTime = "";
+			if(tradeTimePre == null){
+				tradeTime = DateTools.getFormat(new Date());
+			}else{
+				tradeTime = DateTools.getFormat(tradeTimePre);
+			}
+			//通过发票金额和税率计算单价
+			BigDecimal unitPrice = invoiceAmount.divide((taxRateVal).add(new BigDecimal(1)), 2, BigDecimal.ROUND_HALF_UP);;
+			//将参数放入map中
+			paramMap.put("taxpayerNum", taxpayerNum);
+			paramMap.put("enterpriseName", enterpriseName);
+			paramMap.put("tradeTime", tradeTime);
+			paramMap.put("itemName", itemName);
+			paramMap.put("taxRateValue", taxRateVal.toString());
+			paramMap.put("taxClassificationCode", taxClassCode);
+			paramMap.put("unitPrice", unitPrice.toString());
+			paramMap.put("quantity", "1");
+			paramMap.put("invoiceAmount", invoiceAmount.toString());
+			paramMap.put("allowInvoiceCount", allowInvoiceCount);
+			paramMap.put("smsFlag", smsFlag.toString());
+			paramMap.put("expireDays", expireDays.toString());
+			//发送请求并返回响应报文内容对象
+			GetQRCodeRespContent getQRCodeRespContent = sendQRCodeRequest(paramMap);
+			logger.info("** 获取开票二维码接收回应内容部分：" + getQRCodeRespContent);
+			Map<String, String> resultMap = DataChangeTools.json2Map2(DataChangeTools.bean2gson(getQRCodeRespContent));
+			resultMap.put("invoiceStatus", InvoiceConstants.INVOICE_SUCCESS+"");
+			paramMap.putAll(resultMap);
+			paramMap.put("versionNo", version1.toString());
+			String mainTradeNo = subOrderDao.selectMainOrderNoByOrderNo(tradeNo);
+			paramMap.put("mainTradeNo", mainTradeNo);
+			//将信息插入数据库
+			qRCodeDao.insertQRCodeReq(paramMap);
+			//返回的invoiceAmount为税后
+			getQRCodeRespContent.setInvoiceAmount(invoiceAmount);
+			//回应
+			return ResultTools.setObjectResponse(CodeConstants.成功.getCode(), getQRCodeRespContent);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResultTools.setResponse(CodeConstants.服务器异常.getCode());
+		}
+	}
+	
+	@Override
+	public String getQRCodeByMain(String paramJson) {
+		getInvoiceInfo();
+		logger.info("** 获取开票二维码无忧请求：" + paramJson);
+		try {
+			//通过请求参数获取 纳税识别号 企业名称 发票总金额 交易时间
+			Map<String, String> paramMap = DataChangeTools.json2Map2(paramJson);
+			Integer parkId = Integer.parseInt(paramMap.get("parkId"));
+			//此处的tradeNo为主订单号码
+			String tradeNo = paramMap.get("tradeNo");
+			//检测用户是否多次获取
+			Integer qRCodeId = qRCodeDao.selectIdByMainTradeNo(tradeNo);
+			if(qRCodeId != null){
+				GetQRCodeRespContent getQRCodeRespContent = qRCodeDao.selectResponseContentById(qRCodeId);
+				//回应
+				return ResultTools.setObjectResponse(CodeConstants.成功.getCode(), getQRCodeRespContent);
+			}
+			//检测主订单的子订单数量及金额，并从主订单中减去
+			List<BigDecimal> subOrderAmounts = qRCodeDao.selectOrderAmountByTradeNo(tradeNo);
+			BigDecimal subOrderAmountCount = new BigDecimal(0);
+			for (BigDecimal bigDecimal : subOrderAmounts) {
+				subOrderAmountCount = subOrderAmountCount.add(bigDecimal);
+			}
+			String taxpayerNum = enterpriseParkDao.selectTaxpayerNumByParkId(parkId);
+			//检测企业是否注册
+			if(taxpayerNum == null){
+				return ResultTools.setResponse(CodeConstants.企业未注册.getCode());
+			}
+			String enterpriseName = enterpriseParkDao.selectEnterpriseNameByParkId(parkId);
+			BigDecimal invoiceAmount = orderDao.selectAmountByOrderNum(tradeNo);
+			Date tradeTimePre = orderDao.selectCreateTimeByOrderNum(tradeNo);
+			//校验订单金额是否为null，如果为null，则返回订单号不正确
+			if(invoiceAmount == null){
+				return ResultTools.setResponse(CodeConstants.订单号不正确.getCode());
+			}
+			//如果发票金额为零，则直接返回发票金额不能为零
+			if(invoiceAmount.compareTo(new BigDecimal(0)) == 0){
+				return ResultTools.setResponse(CodeConstants.发票金额不能为零.getCode());
+			}
+			invoiceAmount = invoiceAmount.subtract(subOrderAmountCount);
+			if(invoiceAmount.compareTo(new BigDecimal(0)) == 0){
+				return ResultTools.setResponse(CodeConstants.子订单已全部开票.getCode());
+			}
+			//加上交易时间
+			String tradeTime = "";
+			if(tradeTimePre == null){
+				tradeTime = DateTools.getFormat(new Date());
+			}else{
+				tradeTime = DateTools.getFormat(tradeTimePre);
+			}
+			//通过发票金额和税率计算单价
+			BigDecimal unitPrice = invoiceAmount.divide((taxRateVal).add(new BigDecimal(1)), 2, BigDecimal.ROUND_HALF_UP);;
+			//将参数放入map中
+			paramMap.put("taxpayerNum", taxpayerNum);
+			paramMap.put("enterpriseName", enterpriseName);
+			paramMap.put("tradeTime", tradeTime);
+			paramMap.put("itemName", itemName);
+			paramMap.put("taxRateValue", taxRateVal.toString());
+			paramMap.put("taxClassificationCode", taxClassCode);
+			paramMap.put("unitPrice", unitPrice.toString());
+			paramMap.put("quantity", "1");
+			paramMap.put("invoiceAmount", invoiceAmount.toString());
+			paramMap.put("allowInvoiceCount", allowInvoiceCount);
+			paramMap.put("smsFlag", smsFlag.toString());
+			paramMap.put("expireDays", expireDays.toString());
+			//发送请求并返回响应报文内容对象
+			GetQRCodeRespContent getQRCodeRespContent = sendQRCodeRequest(paramMap);
+			logger.info("** 获取开票二维码接收回应内容部分：" + getQRCodeRespContent);
+			Map<String, String> resultMap = DataChangeTools.json2Map2(DataChangeTools.bean2gson(getQRCodeRespContent));
+			resultMap.put("invoiceStatus", InvoiceConstants.INVOICE_SUCCESS+"");
+			paramMap.putAll(resultMap);
+			paramMap.put("versionNo", version2.toString());
+			paramMap.put("mainTradeNo", tradeNo);
+			paramMap.remove("tradeNo");
+			//将信息插入数据库
+			qRCodeDao.insertQRCodeReq(paramMap);
+			//返回的invoiceAmount为税后
+			getQRCodeRespContent.setInvoiceAmount(invoiceAmount);
+			//回应
+			return ResultTools.setObjectResponse(CodeConstants.成功.getCode(), getQRCodeRespContent);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResultTools.setResponse(CodeConstants.服务器异常.getCode());
+		}
+	}
+	
+	@Override
+	public GetQRCodeRespContent sendQRCodeRequest(Map<String, String> paramMap){
+		//将map转换为json字符串并发送请求
+		String content = DataChangeTools.bean2gson(paramMap);
+		logger.info("** 获取开票二维码待发送请求内容部分：" + content);
+		String buildRequest = new OpenApiTools(password, platformCode, prefix, privateKey).buildRequest(content);
+		logger.info("** 获取开票二维码待发送请求完整报文：" + buildRequest);
+		String response = HttpTools.postJson(url4QRCode, buildRequest);
+		String disposeResponse = new OpenApiTools(password, platformCode, prefix, privateKey).disposeResponse(response, ptPublicKey);
+		logger.info("** 获取开票二维码接收回应完整报文：" + disposeResponse);
+		GetQRCodeResp getQRCodeResp = DataChangeTools.gson2bean(disposeResponse, GetQRCodeResp.class);
+		return getQRCodeResp.getContent();
+	}
+
+}

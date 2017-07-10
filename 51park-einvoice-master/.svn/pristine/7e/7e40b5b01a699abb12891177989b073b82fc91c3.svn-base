@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.park.einvoice.dao.EnterpriseDao">
+
+	<select id="selectEnterpriseIdByCode" resultType="int">
+		SELECT enterprise_id FROM cc_enterprise 
+		WHERE enterprise_code = #{enterpriseCode}
+	</select>
+	
+	<select id="selectUnregisteredEnterpriseId" resultType="int">
+		SELECT id FROM cc_enterprise WHERE operate_type = 0;
+	</select>
+
+	<!-- <select id="selectAllEnterpriseCode" resultType="String">
+		SELECT enterprise_code FROM cc_enterprise
+	</select>
+
+	<select id="selectRegedEnterpriseCode" resultType="String">
+		SELECT enterprise_code FROM cc_enterprise_invoice_register
+	</select> -->
+	
+	<select id="selectEnterpriseOprByCode" resultType="int">
+		SELECT operate_type FROM cc_enterprise WHERE enterprise_code = #{enterpriseCode}
+	</select>
+	
+	<select id="selectEnterpriseNameByTaxpayerNum">
+		SELECT enterprise_name FROM cc_enterprise WHERE taxpayer_num = #{taxpayer_num}
+	</select>
+
+	<update id="updateOperateType">
+		UPDATE cc_enterprise 
+		<set>
+			<if test="operationType != null">operate_type=#{operationType}</if>
+		</set>
+		WHERE taxpayer_num = #{taxpayerNum}
+	</update>
+	
+</mapper>

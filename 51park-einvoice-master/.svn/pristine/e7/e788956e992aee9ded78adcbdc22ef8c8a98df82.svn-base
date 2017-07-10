@@ -1,0 +1,131 @@
+package com.park.einvoice.domain;
+
+import com.park.einvoice.domain.mybatis.Column;
+import com.park.einvoice.domain.mybatis.Index;
+import com.park.einvoice.domain.mybatis.Table;
+
+@Table("enterprise")
+public class Enterprise{
+	@Index("enterprise_id")
+	private Integer enterpriceId;
+	//isPermitPaperInvoice是否允许开具纸质发票，对应数据库can_paper_invoice字段
+	@Column("can_paper_invoice")
+	private Integer isPermitPaperInvoice;
+	@Column("operate_type")
+	private Integer operationType;
+	@Column("enterprise_code")
+	private String enterpriseCode;
+	@Column("enterprise_name")
+	private String enterpriseName;
+	@Column("taxpayer_num")
+	private String taxpayerNum;
+	@Column("legal_person_name")
+	private String legalPersonName;
+	@Column("contact_name")
+	private String contactsName;
+	@Column("contact_email")
+	private String contactsEmail;
+	@Column("contact_phone")
+	private String contactsPhone;
+	@Column("region_code")
+	private String regionCode;
+	@Column("city_name")
+	private String cityName;
+	@Column("address")
+	private String enterpriseAddress;
+	@Column("tax_reg_cer")
+	private String taxRegistrationCertificate;
+	public Integer getEnterpriceId() {
+		return enterpriceId;
+	}
+	public void setEnterpriceId(Integer enterpriceId) {
+		this.enterpriceId = enterpriceId;
+	}
+	public Integer getIsPermitPaperInvoice() {
+		return isPermitPaperInvoice;
+	}
+	public void setIsPermitPaperInvoice(Integer isPermitPaperInvoice) {
+		this.isPermitPaperInvoice = isPermitPaperInvoice;
+	}
+	public Integer getOperationType() {
+		return operationType;
+	}
+	public void setOperationType(Integer operationType) {
+		this.operationType = operationType;
+	}
+	public String getEnterpriseCode() {
+		return enterpriseCode;
+	}
+	public void setEnterpriseCode(String enterpriseCode) {
+		this.enterpriseCode = enterpriseCode;
+	}
+	public String getEnterpriseName() {
+		return enterpriseName;
+	}
+	public void setEnterpriseName(String enterpriseName) {
+		this.enterpriseName = enterpriseName;
+	}
+	public String getTaxpayerNum() {
+		return taxpayerNum;
+	}
+	public void setTaxpayerNum(String taxpayerNum) {
+		this.taxpayerNum = taxpayerNum;
+	}
+	public String getLegalPersonName() {
+		return legalPersonName;
+	}
+	public void setLegalPersonName(String legalPersonName) {
+		this.legalPersonName = legalPersonName;
+	}
+	public String getContactsName() {
+		return contactsName;
+	}
+	public void setContactsName(String contactsName) {
+		this.contactsName = contactsName;
+	}
+	public String getContactsEmail() {
+		return contactsEmail;
+	}
+	public void setContactsEmail(String contactsEmail) {
+		this.contactsEmail = contactsEmail;
+	}
+	public String getContactsPhone() {
+		return contactsPhone;
+	}
+	public void setContactsPhone(String contactsPhone) {
+		this.contactsPhone = contactsPhone;
+	}
+	public String getRegionCode() {
+		return regionCode;
+	}
+	public void setRegionCode(String regionCode) {
+		this.regionCode = regionCode;
+	}
+	public String getCityName() {
+		return cityName;
+	}
+	public void setCityName(String cityName) {
+		this.cityName = cityName;
+	}
+	public String getEnterpriseAddress() {
+		return enterpriseAddress;
+	}
+	public void setEnterpriseAddress(String enterpriseAddress) {
+		this.enterpriseAddress = enterpriseAddress;
+	}
+	public String getTaxRegistrationCertificate() {
+		return taxRegistrationCertificate;
+	}
+	public void setTaxRegistrationCertificate(String taxRegistrationCertificate) {
+		this.taxRegistrationCertificate = taxRegistrationCertificate;
+	}
+	@Override
+	public String toString() {
+		return "Enterprise [enterpriceId=" + enterpriceId + ", isPermitPaperInvoice=" + isPermitPaperInvoice
+				+ ", operationType=" + operationType + ", enterpriseCode=" + enterpriseCode + ", enterpriseName="
+				+ enterpriseName + ", taxpayerNum=" + taxpayerNum + ", legalPersonName=" + legalPersonName
+				+ ", contactsName=" + contactsName + ", contactsEmail=" + contactsEmail + ", contactsPhone="
+				+ contactsPhone + ", regionCode=" + regionCode + ", cityName=" + cityName + ", enterpriseAddress="
+				+ enterpriseAddress + ", taxRegistrationCertificate=" + taxRegistrationCertificate + "]";
+	}
+}

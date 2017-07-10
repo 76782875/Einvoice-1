@@ -1,0 +1,146 @@
+package com.park.einvoice.common.properties;
+
+import java.math.BigDecimal;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+@Component("invoice")
+public class Invoice {
+	@Value("${url4Reg}")
+	private String url4Reg;
+	@Value("${url4QRCode}")
+	private String url4QRCode;
+	@Value("${url4BlueInvoice}")
+	private String url4BlueInvoice;
+	@Value("${privateKey}")
+	private String privateKey;
+	@Value("${ptPublicKey}")
+	private String ptPublicKey;
+	@Value("${password}")
+	private String password;
+	@Value("${prefix}")
+	private String prefix;
+	@Value("${platformCode}")
+	private String platformCode;
+	@Value("${taxRateVal}")
+	private BigDecimal taxRateVal;
+	@Value("${taxClassCode}")
+	private String taxClassCode;
+	@Value("${itemName}")
+	private String itemName;
+	@Value("${allowInvoiceCount}")
+	private String allowInvoiceCount;
+	@Value("${smsFlag}")
+	private Integer smsFlag;
+	@Value("${expireDays}")
+	private Integer expireDays;
+	@Value("${version1}")
+	private Integer version1;
+	@Value("${version2}")
+	private Integer version2;
+	@Value("${includeTaxFlag}")
+	private Integer includeTaxFlag;
+	public String getAllowInvoiceCount() {
+		return allowInvoiceCount;
+	}
+	public void setAllowInvoiceCount(String allowInvoiceCount) {
+		this.allowInvoiceCount = allowInvoiceCount;
+	}
+	public String getUrl4Reg() {
+		return url4Reg;
+	}
+	public void setUrl4Reg(String url4Reg) {
+		this.url4Reg = url4Reg;
+	}
+	public String getUrl4QRCode() {
+		return url4QRCode;
+	}
+	public void setUrl4QRCode(String url4qrCode) {
+		url4QRCode = url4qrCode;
+	}
+	public String getUrl4BlueInvoice() {
+		return url4BlueInvoice;
+	}
+	public void setUrl4BlueInvoice(String url4BlueInvoice) {
+		this.url4BlueInvoice = url4BlueInvoice;
+	}
+	public String getPrivateKey() {
+		return privateKey;
+	}
+	public void setPrivateKey(String privateKey) {
+		this.privateKey = privateKey;
+	}
+	public String getPtPublicKey() {
+		return ptPublicKey;
+	}
+	public void setPtPublicKey(String ptPublicKey) {
+		this.ptPublicKey = ptPublicKey;
+	}
+	public String getPassword() {
+		return password;
+	}
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	public String getPrefix() {
+		return prefix;
+	}
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
+	}
+	public String getPlatformCode() {
+		return platformCode;
+	}
+	public void setPlatformCode(String platformCode) {
+		this.platformCode = platformCode;
+	}
+	public BigDecimal getTaxRateVal() {
+		return taxRateVal;
+	}
+	public void setTaxRateVal(BigDecimal taxRateVal) {
+		this.taxRateVal = taxRateVal;
+	}
+	public String getTaxClassCode() {
+		return taxClassCode;
+	}
+	public void setTaxClassCode(String taxClassCode) {
+		this.taxClassCode = taxClassCode;
+	}
+	public String getItemName() {
+		return itemName;
+	}
+	public void setItemName(String itemName) {
+		this.itemName = itemName;
+	}
+	public Integer getSmsFlag() {
+		return smsFlag;
+	}
+	public void setSmsFlag(Integer smsFlag) {
+		this.smsFlag = smsFlag;
+	}
+	public Integer getExpireDays() {
+		return expireDays;
+	}
+	public void setExpireDays(Integer expireDays) {
+		this.expireDays = expireDays;
+	}
+	public Integer getVersion1() {
+		return version1;
+	}
+	public void setVersion1(Integer version1) {
+		this.version1 = version1;
+	}
+	public Integer getVersion2() {
+		return version2;
+	}
+	public void setVersion2(Integer version2) {
+		this.version2 = version2;
+	}
+	public Integer getIncludeTaxFlag() {
+		return includeTaxFlag;
+	}
+	public void setIncludeTaxFlag(Integer includeTaxFlag) {
+		this.includeTaxFlag = includeTaxFlag;
+	}
+}

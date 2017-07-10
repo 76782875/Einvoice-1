@@ -1,0 +1,49 @@
+package com.park.einvoice.domain;
+
+public class EnterpriseRegister {
+	private Integer registerId;
+	private String enterpriceCode,taxpayerNum,platformCode,
+		registrationCode,authorizationCode;
+	public Integer getRegisterId() {
+		return registerId;
+	}
+	public void setRegisterId(Integer registerId) {
+		this.registerId = registerId;
+	}
+	public String getEnterpriceCode() {
+		return enterpriceCode;
+	}
+	public void setEnterpriceCode(String enterpriceCode) {
+		this.enterpriceCode = enterpriceCode;
+	}
+	public String getTaxpayerNum() {
+		return taxpayerNum;
+	}
+	public void setTaxpayerNum(String taxpayerNum) {
+		this.taxpayerNum = taxpayerNum;
+	}
+	public String getPlatformCode() {
+		return platformCode;
+	}
+	public void setPlatformCode(String platformCode) {
+		this.platformCode = platformCode;
+	}
+	public String getRegistrationCode() {
+		return registrationCode;
+	}
+	public void setRegistrationCode(String registrationCode) {
+		this.registrationCode = registrationCode;
+	}
+	public String getAuthorizationCode() {
+		return authorizationCode;
+	}
+	public void setAuthorizationCode(String authorizationCode) {
+		this.authorizationCode = authorizationCode;
+	}
+	@Override
+	public String toString() {
+		return "EnterpriceRegister [registerId=" + registerId + ", enterpriceCode=" + enterpriceCode + ", taxpayerNum="
+				+ taxpayerNum + ", platformCode=" + platformCode + ", registrationCode=" + registrationCode
+				+ ", authorizationCode=" + authorizationCode + "]";
+	}
+}

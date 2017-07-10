@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.park.einvoice.dao.eih5.EmailDao">
+
+	<select id="selectEmailInvoice" resultType="emailInvoice">
+		SELECT invoice_code invoiceCode, invoice_no invoiceNo, invoice_date invoiceDate, buyer_name buyerName, invoice_amount invoiceAmount 
+		FROM cc_ei_blue_push push
+		LEFT JOIN cc_ei_blue blue
+		ON push.invoice_req_serial_no = blue.invoice_req_serial_no 
+		LEFT JOIN cc_ei_blue_items item 
+		ON push.invoice_req_serial_no = item.invoice_req_serial_no 
+		WHERE push.invoice_req_serial_no = #{invoiceReqSerialNo}
+	</select>
+	
+</mapper>

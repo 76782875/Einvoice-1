@@ -1,0 +1,66 @@
+package com.park.einvoice.domain;
+
+import com.park.einvoice.domain.mybatis.Column;
+import com.park.einvoice.domain.mybatis.Index;
+import com.park.einvoice.domain.mybatis.Table;
+
+@Table("enterprise_invoice_register")
+public class EnterpriseRegister {
+	@Index("register_id")
+	private Integer registerId;
+	@Column("enterprise_code")
+	private String enterprise_code;
+	@Column("taxpayer_num")
+	private String taxpayer_num;
+	//企业平台编码
+	@Column("platform_code")
+	private String platform_code;
+	//企业注册码
+	@Column("registration_code")
+	private String registration_code;
+	//企业授权码
+	@Column("authorization_code")
+	private String authorization_code;
+	public Integer getRegisterId() {
+		return registerId;
+	}
+	public void setRegisterId(Integer registerId) {
+		this.registerId = registerId;
+	}
+	public String getEnterprise_code() {
+		return enterprise_code;
+	}
+	public void setEnterprise_code(String enterprise_code) {
+		this.enterprise_code = enterprise_code;
+	}
+	public String getTaxpayer_num() {
+		return taxpayer_num;
+	}
+	public void setTaxpayer_num(String taxpayer_num) {
+		this.taxpayer_num = taxpayer_num;
+	}
+	public String getPlatform_code() {
+		return platform_code;
+	}
+	public void setPlatform_code(String platform_code) {
+		this.platform_code = platform_code;
+	}
+	public String getRegistration_code() {
+		return registration_code;
+	}
+	public void setRegistration_code(String registration_code) {
+		this.registration_code = registration_code;
+	}
+	public String getAuthorization_code() {
+		return authorization_code;
+	}
+	public void setAuthorization_code(String authorization_code) {
+		this.authorization_code = authorization_code;
+	}
+	@Override
+	public String toString() {
+		return "EnterpriseRegister [registerId=" + registerId + ", enterprise_code=" + enterprise_code
+				+ ", taxpayer_num=" + taxpayer_num + ", platform_code=" + platform_code + ", registration_code="
+				+ registration_code + ", authorization_code=" + authorization_code + "]";
+	}
+}

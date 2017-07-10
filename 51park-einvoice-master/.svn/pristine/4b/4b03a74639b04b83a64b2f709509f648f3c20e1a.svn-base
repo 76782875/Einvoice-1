@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.park.einvoice.dao.TradeInvoiceDao">
+
+	<select id="selectTradeNo" resultType="int">
+		SELECT COUNT(*) FROM cc_ei_tradeno_serialno WHERE trade_no=#{tradeNo}
+	</select>
+
+	<insert id="insertTradeInvoice">
+		INSERT INTO cc_ei_tradeno_serialno(trade_no,invoice_req_serial_no) 
+		VALUES(#{tradeNo},#{invoiceReqSerialNo})
+	</insert>
+	
+</mapper>

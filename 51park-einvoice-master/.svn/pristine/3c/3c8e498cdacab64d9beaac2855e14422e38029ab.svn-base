@@ -1,0 +1,270 @@
+package com.park.einvoice.common;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class DateTools {
+	
+	public static SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	
+	public static SimpleDateFormat df_date = new SimpleDateFormat("MM-dd");
+	
+	public static SimpleDateFormat df_time = new SimpleDateFormat("HH:mm");
+	
+	public static SimpleDateFormat df_ = new SimpleDateFormat("yyyy-MM-dd");
+	
+	public static SimpleDateFormat df_date_second = new SimpleDateFormat("M/dd");
+	
+	public static SimpleDateFormat df_time_second = new SimpleDateFormat("H:mm");
+	
+	public static SimpleDateFormat df_twobit = new SimpleDateFormat("yyMMddHHmmss");
+	
+	public static Logger logger =LoggerFactory.getLogger(DateTools.class);
+	/**
+	 * 计算时间差 
+	 * @param date1 
+	 * @param date2
+	 * @return  相差的分钟数
+	 */
+	public  static long  time_interval(String date1,String date2){
+		long interval=0;
+		try {
+			interval = df.parse(date2).getTime()-df.parse(date1).getTime();
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		long min =interval/60/1000; 
+		return min;
+	}
+	/**
+	 *	计算时间差 
+	 * @param date1  单位秒
+	 * @param date2  单位秒
+	 * @return  相差的分钟数
+	 */
+	public  static long  time_interval(long date1,long date2){
+		long interval=0;
+		interval = date2-date1;
+		long min =interval/60; 
+		return min;
+	}
+	/**
+	 * 时间转换 
+	 * 将秒转换成日期  XXXX-XX-XX XX:XX:XX
+	 */
+	public static String secondTostring(int time){
+		
+	    return df.format(time *1000L);
+	}
+	/**
+	 * 时间转换 
+	 * 将秒转换成日期  XXXX-XX-XX
+	 */
+	public static String secondTostringDate3(int time){
+        return df_.format(time *1000L);
+	}
+	/**
+	 * 时间转换 
+	 * 将秒转换成日期  XX-XX
+	 */
+	public static String secondTostringDate(int time){
+        return df_date.format(time *1000L);
+	}
+	/**
+	 * 时间转换 
+	 * 将秒转换成日期  X/XX
+	 */
+	public static String secondTostringDate2(int time){
+        return df_date_second.format(time *1000L);
+	}
+	
+	/**
+	 * 时间转换 
+	 * 将秒转换成时间   XX:XX
+	 */
+	public static String secondTostringTime(int time){
+        return df_time.format(time *1000L);
+	}
+	/**
+	 * 时间转换 
+	 * 将秒转换成时间   X:XX
+	 */
+	public static String secondTostringTime2(int time){
+        return df_time_second.format(time *1000L);
+	}
+	/**
+	 * 时间转换   
+	 * 将秒转换成XX天XX小时XX分钟
+	 * @param time
+	 * @return
+	 */
+	public static String secondTotime(int time){
+		String timeStr = null;  
+		int days=time/(60*60*24);//换成天
+		int hours=(time-(60*60*24*days))/3600;//总秒数-换算成天的秒数=剩余的秒数    剩余的秒数换算为小时
+		/*分钟采用进一法，因此增加59秒*/
+		int minutes=(time-60*60*24*days-3600*hours + 59)/60;//总秒数-换算成天的秒数-换算成小时的秒数=剩余的秒数    剩余的秒数换算为分
+		if (days>0) {
+			timeStr =unitFormat(days)+ "天"+unitFormat(hours)+ "小时"+unitFormat(minutes)+ "分钟";
+		}else if(hours>0){
+			timeStr =unitFormat(hours)+ "小时"+unitFormat(minutes)+ "分钟";
+		}else {
+			timeStr = unitFormat(minutes)+ "分钟";
+		} 
+        return timeStr;
+	}
+	/**
+	 * 时间转换   
+	 * 将分钟转换成XX天XX小时XX分钟
+	 * @param time
+	 * @return
+	 */
+	public static String minuteTotime(long time){
+		String timeStr = null; 
+        Integer days =(int) (time/(60*24));
+        Integer hours = (int) (time/(60)-days*24);
+        Integer minutes = (int) (time-hours*60-days*24*60);
+        if (days>0) {
+			timeStr =unitFormat(days)+ "天"+unitFormat(hours)+ "小时"+unitFormat(minutes)+ "分钟";
+		}else if(hours>0){
+			timeStr =unitFormat(hours)+ "小时"+unitFormat(minutes)+ "分钟";
+		}else {
+			timeStr = unitFormat(minutes)+ "分钟";
+		}
+        return timeStr;
+	}
+	
+	public static String unitFormat(int i) {  
+        String retStr = null;  
+        if (i >= 0 && i < 10)  
+            retStr = "0" + Integer.toString(i);  
+        else  
+            retStr = "" + i;  
+        return retStr;  
+    }  
+	/**
+	 * 将时间增加一定的分钟数
+	 */
+	public static String addTime(String date,int min){
+		
+		try {
+			return df.format((df.parse(date)).getTime()+60000*min);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return nowDate();
+		}
+	}
+	/**
+	 * 获取当前时间戳
+	 * @return
+	 */
+	public static String  nowDate(){
+		
+		return Long.toString(System.currentTimeMillis());
+	}
+	
+	public static String Date(){
+		return df.format(new Date());
+	}
+	public static int phpnowDate() {
+		long time =System.currentTimeMillis();
+		return (int) (time/1000);
+	}
+	
+	/**
+	 * 将日期转换成秒  
+	 * @return  秒
+	 */
+	public static int phpCurrentDate(Date date){
+		
+		String datestr=df_.format(date)+" 00:00:00";
+		long datalong =0;
+		try {
+			datalong=df.parse(datestr).getTime();
+		} catch (ParseException e) {
+			logger.error(" ** 获取时间秒数失败! datestr={}" +e,datestr);
+		}
+		return (int) (datalong/1000);
+	}
+	/**
+	 * 将日期加一天
+	 * @param date
+	 * @return
+	 */
+	public static Date addDate(Date date){
+		 Calendar calendar = new GregorianCalendar();
+		 calendar.setTime(date);
+		 calendar.add(Calendar.DATE,1);//把日期往后增加一天.整数往后推,负数往前移动
+		 date=calendar.getTime(); //这个时间就是日期往后加一天的结果 
+		 return date;
+	}
+	/**
+	 * 将小时加一小时
+	 * @param date
+	 * @return
+	 */
+	public static int addHour(int time,int arg){
+		return time + (60*60)*arg;
+	}
+	/**
+	 * 将天加一天
+	 * @param date
+	 * @return
+	 */
+	public static int addDay(int time,int arg){
+		return time + (60*60*24)*arg;
+	}
+	/**
+	 * 从当前时间增加天数
+	 * @param day 增加天数
+	 * @return 单位秒
+	 */
+	public static int addDayFromNow(int day){
+		Calendar calendar = Calendar.getInstance();
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		int time = (int) ((calendar.getTimeInMillis())/1000);//单位秒s
+		time = DateTools.addDay(time, day);
+		return time;
+	}
+	/**
+	 * 把字符串类型的时间转换成秒
+	 * @param time 格式：yyyy-MM-dd HH:mm:ss
+	 * @return 单位秒
+	 */
+	public static int timeStr2seconds(String time){
+		if(ToolsUtil.isNotNull(time)){
+			time = time.replaceAll("-", "/");
+			@SuppressWarnings("deprecation")
+			Date start = new Date(time);
+			int s = (int) (start.getTime()/1000);
+			return s;
+		}else{
+			return 0;
+		}
+	}
+	/**
+	 * 获取当前的年份
+	 */
+	public static int getCurrentYear(){
+		Calendar now = Calendar.getInstance();  
+		int year =now.get(Calendar.YEAR);
+		return year;
+	}
+	/**
+	 * 获取当前的月份
+	 */
+	public static int getCurrentMonth(){
+		Calendar now = Calendar.getInstance();  
+		int month =(now.get(Calendar.MONTH)+1);
+		return month;
+	}
+}

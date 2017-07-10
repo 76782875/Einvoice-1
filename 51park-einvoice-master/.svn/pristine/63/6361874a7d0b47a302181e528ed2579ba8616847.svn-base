@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.park.einvoice.dao.TradeInvoiceDao">
+
+	<select id="selectTradeNo" resultType="int">
+		SELECT COUNT(*) FROM cc_ei_tradeno_serialno WHERE trade_no=#{tradeNo}
+	</select>
+	
+	<select id="selectInvSubTradeNoList" resultType="String">
+		SELECT sub_trade_no FROM cc_ei_tradeno_serialno WHERE trade_no = #{tradeNo}
+	</select>
+
+<!-- 	<insert id="insertTradeInvoice" parameterType="java.util.List">
+		INSERT INTO cc_ei_tradeno_serialno(trade_no
+			<if test="paramList.traInvMap.subTradeNo != null and paramList.traInvMap.subTradeNo != ''">,sub_trade_no</if>
+			,invoice_req_serial_no) 
+		<foreach item="paramMap" collection="paramList" separator="," open="VALUES" index="">
+			(#{paramMap.tradeNo}
+			<if test="paramMap.subTradeNo != null and paramMap.subTradeNo != ''">,#{paramMap.subTradeNo}</if>
+			,#{paramMap.invoiceReqSerialNo})
+		</foreach>
+	</insert> -->
+	
+	<insert id="insertTradeInvoice" parameterType="java.util.List">
+		<foreach item="paramMap" collection="paramList" separator="," open="" index="">
+		INSERT INTO cc_ei_tradeno_serialno(trade_no
+			<if test="paramMap.subTradeNo != null and paramMap.subTradeNo != ''">,sub_trade_no</if>
+			,invoice_req_serial_no) 
+		VALUES
+			(#{paramMap.tradeNo}
+			<if test="paramMap.subTradeNo != null and paramMap.subTradeNo != ''">,#{paramMap.subTradeNo}</if>
+			,#{paramMap.invoiceReqSerialNo})
+		</foreach>
+	</insert>
+	
+</mapper>

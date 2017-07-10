@@ -1,0 +1,25 @@
+package com.park.einvoice.dao;
+
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.park.einvoice.dao.mybatis.MyBatisRepository;
+
+@MyBatisRepository
+@Repository(value="qRCodeDao")
+public interface QRCodeDao {
+
+	/**
+	 * 将获取二维码的请求的一部分数据插入数据库
+	 * @param paramMap 传入请求参数的map
+	 */
+	void insertQRCodeReq(Map<String, String> paramMap);
+
+	/**
+	 * 将获取二维码的回应的一部分数据插入数据库
+	 * @param resultMap 传入回应的map
+	 */
+	void updateQRCodeResp(Map<String, String> resultMap);
+	
+}

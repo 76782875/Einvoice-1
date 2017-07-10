@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.park.einvoice.dao.OrderDao">
+
+	<select id="selectAmountByOrderNum" resultType="decimal">
+		SELECT prepay_amount FROM cp_order_info WHERE order_num = #{tradeNo}
+	</select>
+	
+	<select id="selectCreateTimeByOrderNum" resultType="java.util.Date">
+		SELECT create_time FROM cp_order_info WHERE order_num = #{tradeNo}
+	</select>
+	
+</mapper>

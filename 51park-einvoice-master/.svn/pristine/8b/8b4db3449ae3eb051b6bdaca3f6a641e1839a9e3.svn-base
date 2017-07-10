@@ -1,0 +1,20 @@
+package com.park.eih5.dao;
+
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.park.einvoice.dao.mybatis.MyBatisRepository;
+
+@MyBatisRepository
+@Repository(value="orderInvoiceDao")
+public interface OrderInvoiceDao {
+
+	/**
+	 * 获取订单发票信息的方法
+	 * @param tradeNo 传入主订单号
+	 * @return 返回包含需要参数的map
+	 */
+	Map<String, String> selectOrderInvoiceInfo(String tradeNo);
+	
+}

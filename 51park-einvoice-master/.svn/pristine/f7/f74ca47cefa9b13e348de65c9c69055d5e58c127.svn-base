@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.park.cloudcenter.dao.DemoDao">
+
+	<!-- <select id="find"  resultType="demo">
+		SELECT * 
+		FROM demo  
+		WHERE id =#{id}
+	</select>
+	<insert id="add" parameterType="demo">
+		INSERT INTO  
+		demo(name,age) 
+		VALUES (#{name},#{age})
+	</insert>
+	
+	<update id="update" parameterType="demo">
+		UPDATE demo
+		<set>
+			<if test="name != null">name=#{name},</if>
+			<if test="age != 0">age=#{age}</if>
+		</set>
+		WHERE id =#{id}
+	</update>
+	
+	<delete id="delete" >
+	 	DELETE FROM demo  WHERE id =#{id}
+	</delete> -->
+</mapper>

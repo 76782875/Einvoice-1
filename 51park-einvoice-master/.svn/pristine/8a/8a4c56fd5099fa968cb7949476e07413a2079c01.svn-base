@@ -1,0 +1,200 @@
+package com.park.einvoice.service.impl;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.park.einvoice.common.Base64Tools;
+import com.park.einvoice.common.CheckSerialNoTools;
+import com.park.einvoice.common.DataChangeTools;
+import com.park.einvoice.common.HttpTools;
+import com.park.einvoice.common.OpenApiTools;
+import com.park.einvoice.common.RSATools;
+import com.park.einvoice.common.ResultTools;
+import com.park.einvoice.common.StreamTools;
+import com.park.einvoice.common.constants.CodeConstants;
+import com.park.einvoice.common.properties.Invoice;
+import com.park.einvoice.dao.EnterpriseDao;
+import com.park.einvoice.dao.EnterpriseRegisterDao;
+import com.park.einvoice.dao.SerialNoDao;
+import com.park.einvoice.domain.Enterprise;
+import com.park.einvoice.domain.EnterpriseRegister;
+import com.park.einvoice.domain.request.EnterpriseRegPushReq;
+import com.park.einvoice.domain.request.EnterpriseRegPushReqContent;
+import com.park.einvoice.domain.request.EnterpriseRegReq;
+import com.park.einvoice.domain.response.EnterpriseRegPTResp;
+import com.park.einvoice.service.EnterpriseService;
+
+@Repository(value="enterpriseServiceImpl")
+public class EnterpriseServiceImpl implements EnterpriseService {
+
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+	
+	@Autowired
+	private Invoice invoice;
+	
+	@Resource(name="enterpriseDao")
+	private EnterpriseDao enterpriseDao;
+	@Resource(name="enterpriseRegisterDao")
+	private EnterpriseRegisterDao enterpriseRegisterDao;
+	@Resource(name="serialNoDao")
+	private SerialNoDao serialNoDao;
+	
+	private String url4Reg;
+	private String privateKey;
+	private String ptPublicKey;
+	private String password;
+	private String prefix;
+	private String platformCode;
+	private String imgUrl;
+	
+	public void getInvoiceInfo(){
+		url4Reg = invoice.getUrl4Reg();
+		privateKey = invoice.getPrivateKey();
+		ptPublicKey = invoice.getPtPublicKey();
+		password = invoice.getPassword();
+		prefix = invoice.getPrefix();
+		platformCode = invoice.getPlatformCode();
+		imgUrl = invoice.getImgUrl();
+	}
+	
+	@Override
+	public boolean enterpriseRegister(Enterprise enterprise) {
+		getInvoiceInfo();
+		//创建map并添加参数
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("taxpayerNum", enterprise.getTaxpayer_num());
+        map.put("enterpriseName", enterprise.getEnterprise_name());
+        map.put("legalPersonName", enterprise.getLegal_person_name());
+        map.put("contactsName", enterprise.getContact_name());
+        map.put("contactsEmail", enterprise.getContact_email());
+        map.put("contactsPhone", enterprise.getContact_phone());
+        map.put("regionCode", enterprise.getRegion_code());
+        map.put("cityName", enterprise.getCity_name());
+        map.put("enterpriseAddress", enterprise.getAddress());
+        String fileString = StreamTools.File2String(imgUrl + enterprise.getTax_reg_cer());
+        String taxRegCer = Base64Tools.encode2String(fileString);
+        map.put("taxRegistrationCertificate", taxRegCer);
+        map.put("isPermitPaperInvoice", enterprise.getCan_paper_invoice() == 1 ? "true" : "false");
+        map.put("operationType", enterprise.getOperate_type() == 2 ? "1" : "0");
+        try {
+        	//将map转换为json
+			String content = DataChangeTools.bean2gson(map);
+			System.out.println(content);
+			//将json数据与签名串等信息结合进行签名
+			String buildRequest = new OpenApiTools(password, platformCode, prefix, privateKey).buildRequest(content);
+			EnterpriseRegReq enterpriseRegReq = DataChangeTools.gson2bean(buildRequest, EnterpriseRegReq.class);
+			serialNoDao.insertSerialNo(enterpriseRegReq.getSerialNo());
+			logger.info("发送请求："+buildRequest);
+			//发送请求并接收返回值
+			String response = HttpTools.postJson(url4Reg, buildRequest);
+			logger.info("接收回应："+response);
+			if(response.contains("<!DOCTYPE")){
+				logger.error("发票接口出现异常,请稍后重试！");
+				return false;
+			}
+			//将返回值解析得到返回的数据
+			String disponseResponse = new OpenApiTools(password, platformCode, prefix, privateKey).disposeResponse(response, ptPublicKey);
+			//将返回的数据封装为对象
+			EnterpriseRegPTResp enterpriseRegPTResp = DataChangeTools.gson2bean(disponseResponse, EnterpriseRegPTResp.class);
+			//判断返回的错误码，如果不成功，返回false
+			if(!enterpriseRegPTResp.getCode().equals("0000")){
+				logger.error("企业注册/更新失败，错误码：" + enterpriseRegPTResp.getCode());
+				logger.error("企业注册/更新失败，错误原因：" + enterpriseRegPTResp.getMsg());
+				return false;
+			}
+//			enterprise.setOperate_type(1);
+//			enterpriseDao.update(enterprise);
+//			enterpriseRegisterDao.insertReg(enterprise);
+			logger.info("企业注册/更新成功！");
+			return true;
+		} catch (Exception e) {
+			logger.error("企业注册/更新失败，发生异常：");
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	@Override
+	public String dealRegisterPush(String enterpriseRegPush) {
+//		String privateKey = "MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAMb5zQXTGf2tG+HiFkUvsgRf506/1leAijkMAKhjJsG9C2KTxW41BqajgF3g5PTt0fpYJeYjoD5iNdV613JxAEAOK3NghntR4aZSn1RuRYKXdvEQD9V2PhG9igVIA70r2HpoAikbhUtM9m0Fn0hQyBO1+K3/+8KK7xrX6SY4Y+7/AgMBAAECgYEAhGdRkKCq2O1KcoMZwqw8T0DqELMDFHMKh29/OI3SCnWbj9s5M17BsD14e//dG0btxSLHBV+LkDeWDxqRJywet1S38VckAttRtKY+mbHc9RGYvVIVn06a/6Z8YNF1508avNOr8rXfmmZSdesoDhv0sZcqHRtkehYLkPdVNPQM6BECQQDoSfrqc1cDSIqjH19qwZJs2S1cnQ6wqDjXEwNROj/2Soe1bpPk3ksuJtpJTEVQBtksTAchj139jP1hFECIK+UVAkEA20lNcx63yE7Km0CDHfx4vVZmmDR8PgRPumcjgeImtiip7ZFNkA3JSwIsSno9pXTfIK54Uim40m5FsX9d1R6wwwJAOErFXc+5xHft8P4HV421eF9hGNKO3szFiYl4AlVFbuA85wD3Ij2kpniP6bdsDKq8MnnyOHXP50Qlm0MXKGjKyQJAMG0yvm6VNZY45ipMCm48F8wh4hENMwDuvoKSc9eGpwm55S4Gi/6PapIzR8tRG94AfI4rIjH2j/osR/ORvEQH0wJBAKE5XAA6ZxIJMKP6Di52Bpxb5PV3daWEEMzR+N1hL0vz3zCSoVXXLa94kcs6sOHyTSHpG36EQc8xAXdOFfoKxhs=";
+//		String ptPublicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCSq96+p/JAZo/ztsGfkF33ts1aLXvPMLVDjhe7Q/mEWIZL0hs758VisBSwX/4bhsCTQjrHq17gElXNN/pmBzqTYRjuITTzKtCgGER0kECbct6TGv9WP6dFl0d6Y4JPmyj8cC9B59FXydKjEQmqHwGl6NQ9bWJf3Oh3PkMPrT0HwwIDAQAB";
+		getInvoiceInfo();
+		//生命要返回的json串和交易流水号
+		String jsonResult = null;
+		String serialNo = null;
+		try {
+			//对请求进行验签------
+			Map<String, String> paramMap = DataChangeTools.json2Map(enterpriseRegPush);
+			String sign = paramMap.remove("sign");
+			boolean verify = RSATools.verify(RSATools.getSignatureContent(paramMap), sign, ptPublicKey);
+			if(!verify){
+				return ResultTools.setResponse(CodeConstants.签名验证失败.getCode());
+			}
+			//验签结束----------
+			
+			//解析请求
+			//	enterpriseRegPushStr：企业注册推送json字符串
+			String enterpriseRegPushStr = new OpenApiTools(password, platformCode, prefix, privateKey).disposeResponse(enterpriseRegPush, ptPublicKey);
+			
+			//将请求转化为对象
+			//	EnterpriseRegPushReq:企业注册推送请求对象
+			EnterpriseRegPushReq enterpriseRegPushReq = DataChangeTools.gson2bean(enterpriseRegPushStr, EnterpriseRegPushReq.class);
+			//	EnterpriseRegPushReqContent：企业注册推送请求内容体对象
+			EnterpriseRegPushReqContent content = enterpriseRegPushReq.getContent();
+			
+			//开始对请求进行处理(封装注册企业对象 -> 获取请求流水号 -> 验证流水号是否正确 -> 将信息写入数据库)
+			Integer enterpriseRegisterId = enterpriseRegisterDao.getId(content.getTaxpayerNum());
+			EnterpriseRegister enterpriseRegister = new EnterpriseRegister();
+			enterpriseRegister.setId(enterpriseRegisterId);
+			enterpriseRegister.setTaxpayer_num(content.getTaxpayerNum());
+			enterpriseRegister.setPlatform_code(content.getPlatformCode());
+			enterpriseRegister.setRegistration_code(content.getRegistrationCode());
+			enterpriseRegister.setAuthorization_code(content.getAuthorizationCode());
+			enterpriseRegister.setCreate_time(new Date());
+			serialNo = enterpriseRegPushReq.getSerialNo();
+			List<String> serialNoList = serialNoDao.selectAllSerialNo();
+			boolean checkSerialNo = CheckSerialNoTools.checkSerialNo(serialNoList, serialNo);
+			if(checkSerialNo){
+				enterpriseRegisterDao.update(enterpriseRegister);
+				Map<String, Object> daoParamMap = new HashMap<String, Object>();
+				daoParamMap.put("taxpayerNum", content.getTaxpayerNum());
+				daoParamMap.put("operationType", 2);
+				enterpriseDao.updateOperateType(daoParamMap);
+				serialNoDao.deleteSerialNo(serialNo);
+			}
+			//封装返回信息为json
+			Map<String, String> contentMap = new HashMap<String, String>();
+			contentMap.put("taxpayerNum", enterpriseRegister.getTaxpayer_num());
+			contentMap.put("enterpriseName", enterpriseDao.selectEnterpriseNameByTaxpayerNum(enterpriseRegister.getTaxpayer_num()));
+			contentMap.put("platformCode", enterpriseRegister.getPlatform_code());
+			contentMap.put("registrationCode", enterpriseRegister.getRegistration_code());
+			contentMap.put("authorizationCode", enterpriseRegister.getAuthorization_code());
+			String respContent = DataChangeTools.bean2gson(contentMap);
+			Map<String, String> resultMap = new HashMap<String, String>();
+			resultMap.put("code", CodeConstants.电子发票成功.getCode());
+			resultMap.put("msg", CodeConstants.电子发票成功.getContent());
+			resultMap.put("serialNo", serialNo);
+			resultMap.put("content", respContent);
+			resultMap.put("sign", RSATools.sign(RSATools.getSignatureContent(resultMap), privateKey));
+			jsonResult = DataChangeTools.bean2gson(resultMap);
+		} catch (Exception e) {
+			e.printStackTrace();
+			Map<String, String> resultMap = new HashMap<String, String>();
+			resultMap.put("code", CodeConstants.电子发票失败.getCode());
+			resultMap.put("msg", CodeConstants.电子发票失败.getContent());
+			resultMap.put("serialNo", serialNo);
+			resultMap.put("sign", RSATools.sign(RSATools.getSignatureContent(resultMap), privateKey));
+			jsonResult = DataChangeTools.bean2gson(resultMap);
+		}
+		return jsonResult;
+	}
+}

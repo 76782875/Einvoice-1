@@ -1,0 +1,46 @@
+package com.park.einvoice.common.service;
+
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Date;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.aliyun.oss.OSSClient;
+import com.aliyun.oss.model.OSSObject;
+import com.park.einvoice.common.properties.ImageUrl;
+@Component("imageService")
+public class ImageService {
+
+	@Autowired
+	private  ImageUrl imageUrl;
+	
+	/**
+	 * OSS加密图片路径 
+	 */
+	public 	String setBetaImage(String name){
+		
+		String accessKeyId = imageUrl.getAccessKeyId();
+		String accessKeySecret = imageUrl.getAccessKeySecret();
+		String endpoint = imageUrl.getEndpoint();
+		OSSClient client = new OSSClient(endpoint, accessKeyId, accessKeySecret);
+		String bucketName = imageUrl.getBucketName();
+		String key = name;
+		// 设置URL过期时间为1小时
+		Date expiration = new Date(new Date().getTime() + 3600 * 1000);
+
+		// 生成URL
+		URL url = client.generatePresignedUrl(bucketName, key, expiration);
+		
+		return url.toString();	
+	}
+	public  InputStream getOSS2InputStream(String name){   
+		String accessKeyId = imageUrl.getAccessKeyId();
+		String accessKeySecret = imageUrl.getAccessKeySecret();
+		String endpoint = imageUrl.getEndpoint();
+		OSSClient client = new OSSClient(endpoint, accessKeyId, accessKeySecret);
+		OSSObject ossObj = client.getObject(imageUrl.getBucketName(), name);  
+		return ossObj.getObjectContent();     
+	}    
+}

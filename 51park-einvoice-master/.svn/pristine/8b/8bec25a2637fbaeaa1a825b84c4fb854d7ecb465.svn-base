@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.park.cloudcenter.dao.EnterpriseDao">
+
+	<select id="selectEnterpriseByCode" resultType="int">
+		SELECT enterprise_id FROM enterprise 
+		WHERE enterprise_code = #{enterpriseCode}
+	</select>
+
+	<select id="selectAllEnterpriseCode" resultType="string">
+		SELECT enterprise_code FROM enterprise
+	</select>
+
+	<select id="selectRegedEnterpriseCode" resultType="string">
+		SELECT enterprise_code FROM enterprise_invoice_register
+	</select>
+	
+</mapper>

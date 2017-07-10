@@ -1,0 +1,70 @@
+package com.park.einvoice.dao;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.park.einvoice.dao.mybatis.BaseDao;
+import com.park.einvoice.dao.mybatis.MyBatisRepository;
+import com.park.einvoice.domain.Enterprise;
+
+@MyBatisRepository
+@Repository(value="enterpriseDao")
+public interface EnterpriseDao extends BaseDao<Enterprise, Serializable> {
+	
+	/**
+	 * 查询企业by企业编码
+	 * @param enterpriseCode 传入 企业编码(String)
+	 * @return 返回 企业对象(Enterprise)
+	 */
+	public Integer selectEnterpriseIdByCode(String enterpriseCode);
+
+	/**
+	 * 查询所有企业的企业编码
+	 * @return 返回 企业编码的集合(List<String>)
+	 *//*
+	public List<String> selectAllEnterpriseCode();
+
+	*//**
+	 * 查询已注册企业的企业编码
+	 * @return 返回 已注册企业编码的合计(List<String>)
+	 *//*
+	public List<String> selectRegedEnterpriseCode();*/
+
+	/**
+	 * 查询企业的操作类型，通过企业编码
+	 * @param enterpriseCode 传入企业编码
+	 * @return 返回企业的操作类型，0为注册，1为更新，若操作类型为注册，则证明该企业尚未注册
+	 */
+	public Integer selectEnterpriseOprByCode(String enterpriseCode);
+
+	/**
+	 * 查询未注册的企业
+	 * @return 返回未注册企业的id的集合 List<Integer>
+	 */
+	public List<Integer> selectUnregisteredEnterpriseId();
+
+	/**
+	 * 更新注册企业的操作类型/注册状态
+	 * @param taxpayerNum 企业税号
+	 * @param operationType 操作类型/注册状态 值
+	 */
+	public void updateOperateType(Map<String, Object> paramMap);
+
+	/**
+	 * 获取企业的名称
+	 * @param taxpayer_num 传入企业税号
+	 * @return 返回企业名称 String
+	 */
+	public String selectEnterpriseNameByTaxpayerNum(String taxpayerNum);
+
+	/**
+	 * 查询企业的开户行、银行账户
+	 * @param taxpayerNum 传入企业的纳税识别号
+	 * @return 返回map
+	 */
+	public Map<String, String> selectEnterInfoByTax(String taxpayerNum);
+
+}

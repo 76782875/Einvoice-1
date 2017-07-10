@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.park.eih5.dao.HasInvoiceDao">
+
+	<select id="selectHasInvoiceList" resultMap="getHasInvoiceListMap">
+		SELECT invoice.invoice_req_serial_no, buyer_name, invoice_amount, LEFT(invoice.create_time, 16) invoice_time,  
+		CASE code WHEN '0000' THEN '1' ELSE '0' END invoice_status
+		FROM cc_blue_invoice invoice
+		JOIN cc_blue_invoice_items item
+		ON invoice.invoice_req_serial_no = item.invoice_req_serial_no 
+		LEFT JOIN cc_blue_invoice_push push 
+		ON invoice.invoice_req_serial_no = push.invoice_req_serial_no 
+		LEFT JOIN cc_tradeno_invoicereqserialno no_in
+		ON invoice.invoice_req_serial_no = no_in.invoice_req_serial_no 
+		WHERE no_in.trade_no =#{tradeNo}
+	</select>
+	
+	<resultMap type="hashmap" id="getHasInvoiceListMap">
+		<result property="invoiceReqSerialNo" column="invoice_req_serial_no" javaType="string"></result>
+		<result property="buyerName" column="buyer_name" javaType="string"></result>
+		<result property="invoiceAmount" column="invoice_amount" javaType="string"></result>
+		<result property="invoiceTime" column="invoice_time" javaType="string"></result>
+		<result property="invoiceStatus" column="invoice_status" javaType="string"></result>
+	</resultMap>
+	
+	<select id="selectHasInvoiceDetail" resultMap="getHasInvoiceDetailMap">
+		SELECT invoice_req_serial_no, invoice_pdf, download_url 
+		FROM cc_blue_invoice_push WHERE invoice_req_serial_no = 'WYTC2017123231231233'
+	</select>
+	
+	<resultMap type="hashmap" id="getHasInvoiceDetailMap">
+		<result property="invoiceReqSerialNo" column="invoice_req_serial_no" javaType="string"></result>
+		<result property="invoicePdf" column="invoice_pdf" javaType="string"></result>
+		<result property="downloadUrl" column="download_url" javaType="string"></result>
+	</resultMap>
+	
+</mapper>

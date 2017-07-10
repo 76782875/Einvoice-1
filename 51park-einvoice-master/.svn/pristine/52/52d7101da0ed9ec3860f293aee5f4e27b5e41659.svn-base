@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.park.einvoice.dao.QRCodeDao">
+
+	<select id="selectQRCodeByTradeNo" resultType="String">
+		SELECT invoice_qr_code FROM cc_qr_code WHERE trade_no = #{tradeNo}
+	</select>
+	
+	<select id="selectResponseContentByTradeNo" resultType="getQRCodeRespContent">
+		SELECT trade_no tradeNo,item_name itemName,invoice_qr_code invoiceQrCode,
+			invoice_url invoiceUrl,invoice_amount invoiceAmount FROM cc_qr_code 
+		WHERE trade_no = #{tradeNo}
+	</select>
+
+	<insert id="insertQRCodeReq">
+		INSERT INTO cc_qr_code(taxpayer_num,enterprise_name,trade_no,
+            trade_time,item_name,tax_rate,tax_class_code,
+            unit_price, quantity, invoice_amount, allow_invoice_count,
+            sms_flag,expire_days) 
+		VALUES(#{taxpayerNum}, #{enterpriseName}, #{tradeNo}, 
+            #{tradeTime},#{itemName},#{taxRateValue},#{taxClassificationCode},
+            #{unitPrice},#{quantity},#{invoiceAmount},#{allowInvoiceCount},
+            #{smsFlag},#{expireDays})
+	</insert>
+	
+	<update id="updateQRCodeResp">
+		UPDATE cc_qr_code 
+		<set>
+			<if test="itemVersionIdentifiers != null and itemVersionIdentifiers != ''">
+				item_var_identify=#{itemVersionIdentifiers},
+			</if>
+			<if test="taxClassificationName != null and taxClassificationName != ''">
+				tax_class_name=#{taxClassificationName},
+			</if>
+			<if test="invoiceQrCode != null and invoiceQrCode != ''">
+				invoice_qr_code=#{invoiceQrCode},
+			</if>
+			<if test="invoiceUrl != null and invoiceUrl != ''">
+				invoice_url=#{invoiceUrl},
+			</if>
+			<if test="invoiceStatus != null and invoiceStatus != ''">
+				invoice_status=#{invoiceStatus}
+			</if>
+		</set>
+		WHERE trade_no = #{tradeNo}
+	</update>
+	
+</mapper>

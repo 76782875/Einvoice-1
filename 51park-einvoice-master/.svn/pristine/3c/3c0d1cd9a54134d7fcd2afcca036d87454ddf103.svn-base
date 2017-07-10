@@ -1,0 +1,95 @@
+package com.park.einvoice.common;
+
+import java.util.Date;
+import java.util.Properties;
+
+import javax.activation.DataHandler;
+import javax.activation.FileDataSource;
+import javax.mail.Authenticator;
+import javax.mail.Multipart;
+import javax.mail.PasswordAuthentication;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.MimeUtility;
+
+public class MailTools {
+	private static final String SERVER_NAME = "einvoice@51park.com.cn";// 邮箱账号名
+	private static final String SERVER_PWD = "wytcEinvoice51=";// 邮箱密码
+	private static final String SMTP = "smtp.exmail.qq.com"; // 设置发送邮件所用到的smtp
+	private static final String title = "无忧停车电子发票";// 所发送邮件的标题
+	private static final String MAIL_CONTENT = "<font size='8'>请在附件中下载您的电子发票</font>";
+	
+	@SuppressWarnings("static-access")
+	public static void sendMail(String email, String downloadUrl) {
+		try {
+			Properties props = new Properties();
+
+			javax.mail.Session mailSession = null; // 邮件会话对象
+			javax.mail.internet.MimeMessage mimeMsg = null; // MIME 邮件对象
+
+			props = java.lang.System.getProperties(); // 获得系统属性对象
+			props.put("mail.smtp.host", SMTP); // 设置SMTP主机
+			props.put("mail.smtp.auth", "true"); // 是否到服务器用户名和密码验证
+			// 到服务器验证发送的用户名和密码是否正确
+			SmtpAuthenticator myEmailAuther = new SmtpAuthenticator(SERVER_NAME, SERVER_PWD);
+			// 设置邮件会话 注意这里将认证信息放进了Session的创建参数里
+			mailSession = javax.mail.Session.getInstance(props, (Authenticator) myEmailAuther);
+			// 设置传输协议
+			javax.mail.Transport transport = mailSession.getTransport("smtp");
+			// 设置from、to等信息
+			mimeMsg = new javax.mail.internet.MimeMessage(mailSession);
+			if (null != SERVER_NAME && !"".equals(SERVER_NAME)) {
+				InternetAddress sentFrom = new InternetAddress(SERVER_NAME);
+				mimeMsg.setFrom(sentFrom); // 设置发送人地址
+			}
+
+			InternetAddress sendTo = new InternetAddress(email);
+
+			mimeMsg.setRecipient(javax.mail.internet.MimeMessage.RecipientType.TO, sendTo);
+			mimeMsg.setSubject(title, "gb2312");
+
+			MimeBodyPart messageBodyPart = new MimeBodyPart();
+			// messageBodyPart.setText(UnicodeToChinese(text));
+			messageBodyPart.setContent(MAIL_CONTENT, "text/html;charset=gb2312");
+			Multipart multipart = new MimeMultipart(); 
+			// 附件传输格式 
+			MimeBodyPart messageBodyPartMulti = new MimeBodyPart(); 
+			String displayname = "电子发票.pdf";
+			// 得到数据源 
+			FileDataSource fds = new FileDataSource(downloadUrl); 
+			// BodyPart添加附件本身 
+			messageBodyPartMulti.setDataHandler(new DataHandler(fds)); 
+			// BodyPart添加附件文件名 
+			messageBodyPartMulti.setFileName(MimeUtility.encodeText(displayname)); 
+			multipart.addBodyPart(messageBodyPartMulti); 
+			multipart.addBodyPart(messageBodyPart);
+			
+			mimeMsg.setContent(multipart);
+			// 设置信件头的发送日期
+			mimeMsg.setSentDate(new Date());
+			mimeMsg.saveChanges();
+			// 发送邮件
+			transport.send(mimeMsg);
+			transport.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+}
+
+class SmtpAuthenticator extends Authenticator {
+	String username = null;
+	String password = null;
+
+	public SmtpAuthenticator(String username, String password) {
+		super();
+		this.username = username;
+		this.password = password;
+	}
+
+	public PasswordAuthentication getPasswordAuthentication() {
+		return new PasswordAuthentication(this.username, this.password);
+	}
+}

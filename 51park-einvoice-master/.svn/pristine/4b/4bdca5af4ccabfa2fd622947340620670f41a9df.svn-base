@@ -1,0 +1,26 @@
+package com.park.einvoice.dao;
+
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.park.einvoice.dao.mybatis.MyBatisRepository;
+
+@MyBatisRepository
+@Repository(value="tradeInvoiceDao")
+public interface TradeInvoiceDao {
+
+	/**
+	 * 将交易单号和发票请求流水号对应插入表中
+	 * @param paramMap 传入包含tradeNo和invoiceReqSerialNo的map
+	 */
+	void insertTradeInvoice(Map<String, Object> paramMap);
+
+	/**
+	 * 查询交易单号是否已经开过蓝票
+	 * @param tradeNo 传入交易单号
+	 * @return 返回总条数
+	 */
+	int selectTradeNo(String tradeNo);
+	
+}

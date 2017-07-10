@@ -1,0 +1,274 @@
+package com.park.einvoice.service.impl;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import javax.annotation.Resource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.park.einvoice.common.DataChangeTools;
+import com.park.einvoice.common.HttpTools;
+import com.park.einvoice.common.OpenApiTools;
+import com.park.einvoice.common.RSATools;
+import com.park.einvoice.common.ResultTools;
+import com.park.einvoice.common.UUIDTools;
+import com.park.einvoice.common.constants.CodeConstants;
+import com.park.einvoice.common.properties.Invoice;
+import com.park.einvoice.dao.BlueInvoiceDao;
+import com.park.einvoice.dao.BlueInvoicePushDao;
+import com.park.einvoice.dao.BlueInvoiceReqDao;
+import com.park.einvoice.dao.EnterpriseParkDao;
+import com.park.einvoice.dao.OrderDao;
+import com.park.einvoice.dao.TradeInvoiceDao;
+import com.park.einvoice.domain.request.BlueInvoicePushReq;
+import com.park.einvoice.domain.request.BlueInvoicePushReqContent;
+import com.park.einvoice.domain.response.BlueInvoiceReponseContent;
+import com.park.einvoice.domain.response.BlueInvoiceResponse;
+import com.park.einvoice.domain.response.BlueInvoiceResultResponse;
+import com.park.einvoice.service.BlueInvoiceService;
+
+/**
+ * 处理跟蓝票相关的所有业务逻辑
+ * 
+ * @author WangYuefei
+ * 
+ */
+@Repository(value = "blueInvoiceServiceImpl")
+public class BlueInvoiceServiceImpl implements BlueInvoiceService {
+
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+
+	@Resource(name = "enterpriseParkDao")
+	private EnterpriseParkDao enterpriseParkDao;
+	@Resource(name = "orderDao")
+	private OrderDao orderDao;
+	@Resource(name = "blueInvoiceReqDao")
+	private BlueInvoiceReqDao blueInvoiceReqDao;
+	@Resource(name = "blueInvoiceDao")
+	private BlueInvoiceDao blueInvoiceDao;
+	@Resource(name = "blueInvoicePushDao")
+	private BlueInvoicePushDao blueInvoicePushDao;
+	@Resource(name = "tradeInvoiceDao")
+	private TradeInvoiceDao tradeInvoiceDao;
+	
+	@Autowired
+	private Invoice invoice;
+	private String url4BlueInvoice;
+	private String privateKey;
+	private String ptPublicKey;
+	private String password;
+	private String prefix;
+	private String platformCode;
+	private BigDecimal taxRateVal;
+	private String taxClassCode;
+	private String itemName;
+	private Integer invoiceTaxFlag;
+
+	@Override
+	public String searchInvoiceResult(String requestJsonStr) {
+		try {
+			Map<String, String> requestTradeNo = DataChangeTools.json2Map(requestJsonStr);
+			BlueInvoiceResultResponse invoiceResult = blueInvoicePushDao.selectPushByTradeNo(requestTradeNo);
+			invoiceResult.setInvoiceStatus(invoiceResult.getInvoiceStatus().equals("0000") ? "1" : "0");
+			logger.info("** 蓝票 无忧应用查询开票状态：" + DataChangeTools.bean2gson(invoiceResult));
+			return ResultTools.setObjectResponse(CodeConstants.成功.getCode(), invoiceResult);
+		} catch (Exception e) {
+			logger.error("** 蓝票 无忧应用查询开票状态出现异常：" + e.getMessage());
+			e.printStackTrace();
+			return ResultTools.setResponse(CodeConstants.服务器异常.getCode());
+		}
+	}
+	
+	@Override
+	public String dealBlueInvoicePush(String requestJsonStr) {
+		getInvoiceInfo();
+		//声明要返回的JSON串和交易流水号
+		String jsonResult = null;
+		String serialNo = null;
+		try {
+			//对请求进行验签------
+			Map<String, String> paramMap = DataChangeTools.json2Map(requestJsonStr);
+			String sign = paramMap.remove("sign");
+			boolean verify = RSATools.verify(RSATools.getSignatureContent(paramMap), sign, ptPublicKey);
+			if(!verify){
+				return ResultTools.setResponse(CodeConstants.签名验证失败.getCode());
+			}
+			//验签结束----------
+			
+			serialNo = paramMap.get("serialNo");
+			String blueInvoicePushStr = new OpenApiTools(password, platformCode, prefix, privateKey).disposeResponse(requestJsonStr, ptPublicKey);
+			logger.info("** 蓝票 票通推送完整报文：" + blueInvoicePushStr);
+			BlueInvoicePushReq blueInvoicePush = DataChangeTools.gson2bean(blueInvoicePushStr, BlueInvoicePushReq.class);
+			BlueInvoicePushReqContent invoicePushContent = blueInvoicePush.getContent();
+			//将推送信息插入蓝票推送表
+			int pushExist = blueInvoicePushDao.selectInvoicePush(invoicePushContent.getInvoiceReqSerialNo());
+			if(pushExist == 0){
+				blueInvoicePushDao.insertInvoicePush(invoicePushContent);
+				logger.info("** 蓝票 票通推送报文内容已存入数据库：" + invoicePushContent);
+			}else{
+				logger.info("** 蓝票 数据库已存在该推送数据：" + invoicePushContent);
+			}
+			//准备数据并回应票通
+			Map<String, String> resultMap = new HashMap<String, String>();
+			resultMap.put("code", CodeConstants.电子发票成功.getCode());
+			resultMap.put("msg", CodeConstants.电子发票成功.getContent());
+			resultMap.put("serialNo", serialNo);
+			Map<String, String> tempMap = new HashMap<String, String>();
+			tempMap.put("taxpayerNum", invoicePushContent.getTaxpayerNum());
+			tempMap.put("invoiceReqSerialNo", invoicePushContent.getInvoiceReqSerialNo());
+			String respContent = DataChangeTools.bean2gson(tempMap);
+			resultMap.put("content", respContent);
+			resultMap.put("sign", RSATools.sign(RSATools.getSignatureContent(resultMap), privateKey));
+			jsonResult = DataChangeTools.bean2gson(resultMap);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("** 蓝票 票通推送信息处理异常：" + e.getMessage());
+			//准备数据并回应票通
+			Map<String, String> resultMap = new HashMap<String, String>();
+			resultMap.put("code", CodeConstants.电子发票失败.getCode());
+			resultMap.put("msg", CodeConstants.电子发票失败.getContent());
+			resultMap.put("serialNo", serialNo);
+			resultMap.put("sign", RSATools.sign(RSATools.getSignatureContent(resultMap), privateKey));
+			jsonResult = DataChangeTools.bean2gson(resultMap);
+		}
+		logger.info("** 蓝票 推送回应完整报文：" + jsonResult);
+		return jsonResult;
+	}
+	
+	@Override
+	public String blueInvoice(String requestJsonStr) {
+		getInvoiceInfo();
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		try {
+			logger.info("** 蓝票 获取客户端发送的请求字符串：" + requestJsonStr);
+			// 解析无忧客户端请求数据，并准备要发给票通的请求数据
+			Map<String, String> reqMap = DataChangeTools.json2Map(requestJsonStr);
+			Integer parkId = Integer.parseInt(reqMap.get("parkId"));
+			String taxpayerNum = enterpriseParkDao.selectTaxpayerNumByParkId(parkId);
+			// 校验企业是否注册
+			if (taxpayerNum == null) {
+				return ResultTools.setResponse(CodeConstants.企业未注册.getCode());
+			}
+			String invoiceReqSerialNo = UUIDTools.getInvoiceReqSerialNo(prefix);
+			String buyerName = reqMap.get("buyerName");
+			String tradeNo = reqMap.get("tradeNo");
+			// 校验是否已经开具过蓝票
+			int tradeNoExist = tradeInvoiceDao.selectTradeNo(tradeNo);
+			if(tradeNoExist != 0){
+				return ResultTools.setResponse(CodeConstants.订单号不正确.getCode());
+			}
+			// 校验参数是否正确
+			if (buyerName == null || tradeNo == null) {
+				return ResultTools.setResponse(CodeConstants.参数错误.getCode());
+			}
+			BigDecimal invoiceAmount = new BigDecimal(reqMap.get("invoiceAmount"));
+			// 校验发票金额是否为零
+			if (invoiceAmount.compareTo(new BigDecimal(0)) == 0) {
+				return ResultTools.setResponse(CodeConstants.发票金额不能为零.getCode());
+			}
+			// 将交易订单号放入结果集
+			resultMap.put("tradeNo", tradeNo);
+			reqMap.remove("buyerName");
+			reqMap.remove("parkId");
+			reqMap.remove("tradeNo");
+			reqMap.remove("invoiceAmount");
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("taxpayerNum", taxpayerNum);
+			paramMap.put("invoiceReqSerialNo", invoiceReqSerialNo);
+			paramMap.put("buyerName", buyerName);
+			paramMap.put("goodsName", itemName);
+			Set<Entry<String, String>> reqMapEntry = reqMap.entrySet();
+			Iterator<Entry<String, String>> reqMapEntryIter = reqMapEntry.iterator();
+			// 检测非必传参数是否为空， 不为空则放入paramMap
+			while (reqMapEntryIter.hasNext()) {
+				Entry<String, String> reqEntry = reqMapEntryIter.next();
+				String key = reqEntry.getKey();
+				String value = reqEntry.getValue();
+				if (value != null && !value.equals("")) {
+					paramMap.put(key, value);
+				}
+			}
+			// 将向票通发送的请求的数据插入蓝票表
+			blueInvoiceDao.insertRequest2PT(paramMap);
+			// 封装蓝票开票项目list
+			List<Map<String, String>> itemList = new ArrayList<Map<String, String>>();
+			Map<String, String> listMap = new HashMap<String, String>();
+			listMap.put("taxClassificationCode", taxClassCode);
+			listMap.put("quantity", "1");
+			BigDecimal unisPrice = invoiceAmount.divide(new BigDecimal(1).add(taxRateVal));
+			listMap.put("unitPrice", unisPrice.toString());
+			listMap.put("invoiceAmount", invoiceAmount.toString());
+			listMap.put("taxRateValue", taxRateVal.toString());
+			listMap.put("includeTaxFlag", invoiceTaxFlag.toString());
+			itemList.add(listMap);
+			paramMap.put("itemList", itemList);
+			// 将向票通发送的请求的开票项插入到蓝票开票项目表
+			listMap.put("invoiceReqSerialNo", invoiceReqSerialNo);
+			blueInvoiceDao.insertRequestItem2PT(listMap);
+			String content = DataChangeTools.bean2gson(paramMap);
+			logger.info("** 蓝票 向票通发送的请求的内容：" + content);
+			// 向票通发送开蓝票请求
+			String buildRequest = new OpenApiTools(password, platformCode, prefix, privateKey).buildRequest(content);
+			logger.info("** 蓝票 向票通发送的请求：" + buildRequest);
+			String response = HttpTools.postJson(url4BlueInvoice, buildRequest);
+			logger.info("** 蓝票 接收票通的回应：" + response);
+			String disposeResponse = new OpenApiTools(password, platformCode, prefix, privateKey)
+					.disposeResponse(response, ptPublicKey);
+			logger.info("** 蓝票 接收票通的回应(解密后)：" + disposeResponse);
+			// 从返回的结果中取出错误码，并根据结果进行处理
+			BlueInvoiceResponse blueInvoiceResponse = DataChangeTools.gson2bean(disposeResponse, BlueInvoiceResponse.class);
+			String ptCode = blueInvoiceResponse.getCode();
+			// 如果请求不成功，则对请求进行处理
+			if (!ptCode.equals("0000") && !ptCode.equals("8993")) {
+				logger.error("** 蓝票 请求成功，返回非成功值：" + ptCode + blueInvoiceResponse.getMsg());
+				// 查询蓝票请求表中是否存在该请求
+				int blueInvoiceRequestExist = blueInvoiceReqDao.selectCountByTradeNo(tradeNo);
+				// 如果不存在该请求，将请求插入蓝票请求表
+				if (blueInvoiceRequestExist == 0) {
+					paramMap.put("tradeNo", tradeNo);
+					paramMap.put("parkId", parkId);
+					paramMap.put("invoiceAmount", invoiceAmount);
+					paramMap.remove("itemList");
+					blueInvoiceReqDao.insertBlueInvoiceReq(paramMap);
+				}
+				return ResultTools.setResponse(CodeConstants.服务器异常.getCode());
+			}
+			//请求发送正常时，将信息插入数据库
+			if(!ptCode.equals("8993")){
+				BlueInvoiceReponseContent blueInvoiceReponseContent = blueInvoiceResponse.getContent();
+				blueInvoiceDao.insertResponse4PT(blueInvoiceReponseContent);
+			}
+			tradeInvoiceDao.insertTradeInvoice(paramMap);
+			return ResultTools.setObjectResponse(CodeConstants.成功.getCode(), resultMap);
+		} catch (Exception e) {
+			logger.error("** 蓝票 请求出现异常");
+			e.printStackTrace();
+			return ResultTools.setResponse(CodeConstants.服务器异常.getCode());
+		}
+	}
+
+	@Override
+	public void getInvoiceInfo() {
+		url4BlueInvoice = invoice.getUrl4BlueInvoice();
+		privateKey = invoice.getPrivateKey();
+		ptPublicKey = invoice.getPtPublicKey();
+		password = invoice.getPassword();
+		prefix = invoice.getPrefix();
+		platformCode = invoice.getPlatformCode();
+		taxRateVal = invoice.getTaxRateVal();
+		taxClassCode = invoice.getTaxClassCode();
+		itemName = invoice.getItemName();
+		invoiceTaxFlag = invoice.getIncludeTaxFlag();
+	}
+
+}

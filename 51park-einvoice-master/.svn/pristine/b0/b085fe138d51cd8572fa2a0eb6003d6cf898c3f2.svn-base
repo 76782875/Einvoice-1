@@ -1,0 +1,130 @@
+package com.park.einvoice.common.properties;
+
+import java.math.BigDecimal;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+@Component("invoice")
+public class Invoice {
+	@Value("${url4Reg}")
+	private String url4Reg;
+	@Value("${url4QRCode}")
+	private String url4QRCode;
+	@Value("${privateKey}")
+	private String privateKey;
+	@Value("${ptPublicKey}")
+	private String ptPublicKey;
+	@Value("${password}")
+	private String password;
+	@Value("${prefix}")
+	private String prefix;
+	@Value("${platformCode}")
+	private String platformCode;
+	@Value("${imgUrl}")
+	private String imgUrl;
+	@Value("${taxRateVal}")
+	private BigDecimal taxRateVal;
+	@Value("${taxClassCode}")
+	private String taxClassCode;
+	@Value("${taxClassCode2}")
+	private String taxClassCode2;
+	@Value("${itemName}")
+	private String itemName;
+	@Value("${allowInvoiceCount}")
+	private String allowInvoiceCount;
+	@Value("${smsFlag}")
+	private Integer smsFlag;
+	@Value("${expireDays}")
+	private Integer expireDays;
+	public String getAllowInvoiceCount() {
+		return allowInvoiceCount;
+	}
+	public void setAllowInvoiceCount(String allowInvoiceCount) {
+		this.allowInvoiceCount = allowInvoiceCount;
+	}
+	public String getImgUrl() {
+		return imgUrl;
+	}
+	public void setImgUrl(String imgUrl) {
+		this.imgUrl = imgUrl;
+	}
+	public String getUrl4Reg() {
+		return url4Reg;
+	}
+	public void setUrl4Reg(String url4Reg) {
+		this.url4Reg = url4Reg;
+	}
+	public String getUrl4QRCode() {
+		return url4QRCode;
+	}
+	public void setUrl4QRCode(String url4qrCode) {
+		url4QRCode = url4qrCode;
+	}
+	public String getPrivateKey() {
+		return privateKey;
+	}
+	public void setPrivateKey(String privateKey) {
+		this.privateKey = privateKey;
+	}
+	public String getPtPublicKey() {
+		return ptPublicKey;
+	}
+	public void setPtPublicKey(String ptPublicKey) {
+		this.ptPublicKey = ptPublicKey;
+	}
+	public String getPassword() {
+		return password;
+	}
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	public String getPrefix() {
+		return prefix;
+	}
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
+	}
+	public String getPlatformCode() {
+		return platformCode;
+	}
+	public void setPlatformCode(String platformCode) {
+		this.platformCode = platformCode;
+	}
+	public BigDecimal getTaxRateVal() {
+		return taxRateVal;
+	}
+	public void setTaxRateVal(BigDecimal taxRateVal) {
+		this.taxRateVal = taxRateVal;
+	}
+	public String getTaxClassCode() {
+		return taxClassCode;
+	}
+	public void setTaxClassCode(String taxClassCode) {
+		this.taxClassCode = taxClassCode;
+	}
+	public String getTaxClassCode2() {
+		return taxClassCode2;
+	}
+	public void setTaxClassCode2(String taxClassCode2) {
+		this.taxClassCode2 = taxClassCode2;
+	}
+	public String getItemName() {
+		return itemName;
+	}
+	public void setItemName(String itemName) {
+		this.itemName = itemName;
+	}
+	public Integer getSmsFlag() {
+		return smsFlag;
+	}
+	public void setSmsFlag(Integer smsFlag) {
+		this.smsFlag = smsFlag;
+	}
+	public Integer getExpireDays() {
+		return expireDays;
+	}
+	public void setExpireDays(Integer expireDays) {
+		this.expireDays = expireDays;
+	}
+}

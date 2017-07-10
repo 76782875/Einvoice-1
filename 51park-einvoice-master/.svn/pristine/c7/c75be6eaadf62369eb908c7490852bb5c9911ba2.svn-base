@@ -1,0 +1,33 @@
+# 注册企业url
+url4Reg=http://fpkj.testnw.vpiaotong.cn/tp/openapi/register.pt
+# 获取开票二维码url
+url4QRCode=http://fpkj.testnw.vpiaotong.cn/tp/openapi/getNotDefaultItemInvoiceQrcode.pt
+# 开具蓝票url
+url4BlueInvoice=http://fpkj.testnw.vpiaotong.cn/tp/openapi/invoiceBlue.pt
+# 我方的私钥
+privateKey=MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAMb5zQXTGf2tG+HiFkUvsgRf506/1leAijkMAKhjJsG9C2KTxW41BqajgF3g5PTt0fpYJeYjoD5iNdV613JxAEAOK3NghntR4aZSn1RuRYKXdvEQD9V2PhG9igVIA70r2HpoAikbhUtM9m0Fn0hQyBO1+K3/+8KK7xrX6SY4Y+7/AgMBAAECgYEAhGdRkKCq2O1KcoMZwqw8T0DqELMDFHMKh29/OI3SCnWbj9s5M17BsD14e//dG0btxSLHBV+LkDeWDxqRJywet1S38VckAttRtKY+mbHc9RGYvVIVn06a/6Z8YNF1508avNOr8rXfmmZSdesoDhv0sZcqHRtkehYLkPdVNPQM6BECQQDoSfrqc1cDSIqjH19qwZJs2S1cnQ6wqDjXEwNROj/2Soe1bpPk3ksuJtpJTEVQBtksTAchj139jP1hFECIK+UVAkEA20lNcx63yE7Km0CDHfx4vVZmmDR8PgRPumcjgeImtiip7ZFNkA3JSwIsSno9pXTfIK54Uim40m5FsX9d1R6wwwJAOErFXc+5xHft8P4HV421eF9hGNKO3szFiYl4AlVFbuA85wD3Ij2kpniP6bdsDKq8MnnyOHXP50Qlm0MXKGjKyQJAMG0yvm6VNZY45ipMCm48F8wh4hENMwDuvoKSc9eGpwm55S4Gi/6PapIzR8tRG94AfI4rIjH2j/osR/ORvEQH0wJBAKE5XAA6ZxIJMKP6Di52Bpxb5PV3daWEEMzR+N1hL0vz3zCSoVXXLa94kcs6sOHyTSHpG36EQc8xAXdOFfoKxhs=
+# 票通的公钥
+ptPublicKey=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCJkx3HelhEm/U7jOCor29oHsIjCMSTyKbX5rpoAY8KDIs9mmr5Y9r+jvNJH8pK3u5gNnvleT6rQgJQW1mk0zHuPO00vy62tSA53fkSjtM+n0oC1Fkm4DRFd5qJgoP7uFQHR5OEffMjy2qIuxChY4Au0kq+6RruEgIttb7wUxy8TwIDAQAB
+# 加密字符串
+password=ACWjwtqhDdZGRg5QFitkyN8p
+# 平台简称，发票请求流水号前缀
+prefix=WYTC
+# 平台编码
+platformCode=1Ie3pU3A
+# 税率
+taxRateVal=0.05
+# 税收分类编码，停车费的税收分类编码为下面的两个
+taxClassCode=3040502020200000000
+# 开票项目名称
+itemName=\u8F66\u8F86\u505C\u653E\u670D\u52A1
+# 每个二维码允许开票的张数
+allowInvoiceCount=1
+# 是否发送短信
+smsFlag=0
+# 二维码有效天数，有效值为1、2、3、7、15、30、90、180、365，其它值无效，不写为永久有效(不推荐)
+expireDays=1
+# 获取开票二维码的版本(版本1.0仅支持子订单开票)
+version1=1
+version2=2
+# 开具蓝票时的含税标识，指invoiceAmount参数是否含税，0 - 不含税，1 - 含税
+includeTaxFlag=1

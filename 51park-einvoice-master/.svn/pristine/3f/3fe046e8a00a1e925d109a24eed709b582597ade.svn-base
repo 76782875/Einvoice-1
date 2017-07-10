@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.park.einvoice.dao.PdfDao">
+	
+	<select id="pdfExist" resultType="int">
+		SELECT COUNT(*) FROM cc_ei_pdf_img 
+		WHERE invoice_req_serial_no = #{invoiceReqSerialNo}
+	</select>
+	
+	<insert id="insertPdfImg">
+		INSERT INTO cc_ei_pdf_img(
+			invoice_req_serial_no
+			<if test="pdfFileName != null">,invoice_pdf_url</if>
+			<if test="imgFileName != null">,invoice_img_url</if>
+		) VALUES(
+			#{invoiceReqSerialNo}
+			<if test="pdfFileName != null">,#{pdfFileName}</if>
+			<if test="imgFileName != null">,#{imgFileName}</if>
+		)
+	</insert>
+	
+</mapper>

@@ -1,0 +1,17 @@
+package com.park.einvoice.service;
+
+import org.springframework.stereotype.Repository;
+
+import com.park.einvoice.domain.Enterprise;
+
+@Repository(value="enterpriceService")
+public interface EnterpriseService {
+	
+	/**
+	 * 企业注册
+	 * @param enterprice 企业对象
+	 * @return 注册是否成功 true-成功 false-失败
+	 */
+	public boolean enterpriseRegister(Enterprise enterprise);
+	
+}

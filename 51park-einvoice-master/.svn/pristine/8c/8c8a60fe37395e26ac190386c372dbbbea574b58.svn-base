@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.park.einvoice.dao.BlueInvoiceReqDao">
+
+	<select id="selectBlueInvoiceReqs" resultType="blueInvoiceReq">
+		SELECT * FROM cc_blue_invoice_request
+	</select>
+	
+	<select id="selectBlueInvoiceRequestById" resultType="blueInvoiceRequest">
+		SELECT trade_no tradeNo,park_id parkId,invoice_amount invoiceAmount,
+			buyer_name buyerName,buyer_taxpayer_num buyerTaxpayerNum,
+			buyer_address buyerAddress,buyer_tel buyerTel,buyer_bank_name buyerBankName,
+			buyer_bank_account buyerBankAccount,casher_name casherName,
+			reviewer_name reviewerName,taker_name takerName,taker_tel takerTel,
+			taker_email takerEmail
+		FROM cc_blue_invoice_request WHERE id = #{id}
+	</select>
+	
+	<select id="selectCountByTradeNo" resultType="int">
+		SELECT COUNT(*) FROM cc_blue_invoice_request WHERE trade_no = #{tradeNo}
+	</select>
+	
+	<insert id="insertBlueInvoiceReq">
+		INSERT INTO cc_blue_invoice_request(trade_no,park_id,invoice_amount,buyer_name
+			<if test="buyerTaxpayerNum != null">,buyer_taxpayer_num</if>
+			<if test="buyerAddress != null">,buyer_address</if>
+			<if test="buyerTel != null">,buyer_tel</if>
+			<if test="buyerBankName != null">,buyer_bank_name</if>
+			<if test="buyerBankAccount != null">,buyer_bank_account</if>
+			<if test="casherName != null">,casher_name</if>
+			<if test="reviewerName != null">,reviewer_name</if>
+			<if test="takerName != null">,taker_name</if>
+			<if test="takerTel != null">,taker_tel</if>
+			<if test="takerEmail != null">,taker_email</if>
+		) 
+		VALUES(#{tradeNo},#{parkId},#{invoiceAmount},#{buyerName}
+			<if test="buyerTaxpayerNum != null">,#{buyerTaxpayerNum}</if>
+			<if test="buyerAddress != null">,#{buyerAddress}</if>
+			<if test="buyerTel != null">,#{buyerTel}</if>
+			<if test="buyerBankName != null">,#{buyerBankName}</if>
+			<if test="buyerBankAccount != null">,#{buyerBankAccount}</if>
+			<if test="casherName != null">,#{casherName}</if>
+			<if test="reviewerName != null">,#{reviewerName}</if>
+			<if test="takerName != null">,#{takerName}</if>
+			<if test="takerTel != null">,#{takerTel}</if>
+			<if test="takerEmail != null">,#{takerEmail}</if>
+		)
+	</insert>
+	
+	<update id="updateBlueInvoiceReqTimes">
+		UPDATE cc_blue_invoice_request 
+		<set>
+			<if test="update_time != null">update_time=#{update_time},</if>
+			<if test="req_times != null">req_times=#{req_times}</if>
+		</set>
+		WHERE id = #{id}
+	</update>
+	
+	<delete id="deleteBlueInvoiceReq">
+		DELETE FROM cc_blue_invoice_request WHERE id=#{id}
+	</delete>
+	
+</mapper>

@@ -1,0 +1,90 @@
+package com.park.einvoice.service.impl;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.park.einvoice.common.DataChangeTools;
+import com.park.einvoice.common.HttpTools;
+import com.park.einvoice.common.OpenApiTools;
+import com.park.einvoice.common.properties.Invoice;
+import com.park.einvoice.dao.EnterpriseDao;
+import com.park.einvoice.domain.Enterprise;
+import com.park.einvoice.domain.request.EnterpriseRequest;
+import com.park.einvoice.service.EnterpriseService;
+
+@Repository(value="enterpriseServiceImpl")
+public class EnterpriseServiceImpl implements EnterpriseService {
+
+	private Logger logger =LoggerFactory.getLogger(this.getClass());
+	
+	@Resource(name="enterpriseDao")
+	private EnterpriseDao enterpriseDao;
+	
+	@Autowired
+	private Invoice invoice;
+	
+	@Override
+	public boolean enterpriceRegister(Enterprise enterprise) {
+		String url = invoice.getUrl();
+		String password = invoice.getPassword();
+		String prefix = invoice.getPrefix();
+		String platformCode = invoice.getPlatformCode();
+		String privateKey = invoice.getPrivateKey();
+		String ptPublicKey = invoice.getPtPublicKey();
+		//创建map并添加参数
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("taxpayerNum", prefix + enterprise.getTaxpayer_num());
+        map.put("enterpriseName", enterprise.getEnterprise_name());
+        map.put("legalPersonName", enterprise.getLegal_person_name());
+        map.put("contactsName", enterprise.getContact_name());
+        map.put("contactsEmail", enterprise.getContact_email());
+        map.put("contactsPhone", enterprise.getContact_phone());
+        map.put("regionCode", enterprise.getRegion_code());
+        map.put("cityName", enterprise.getCity_name());
+        map.put("enterpriseAddress", enterprise.getAddress());
+        map.put("taxRegistrationCertificate", enterprise.getTax_reg_cer());
+        map.put("isPermitPaperInvoice", enterprise.getCan_paper_invoice() == 1 ? "true" : "false");
+        map.put("operationType", enterprise.getOperate_type().toString());
+        try {
+        	//将map转换为json
+			String content = DataChangeTools.bean2gson(map);
+			System.out.println(content);
+			//将json数据与签名串等信息结合进行签名
+			String buildRequest = new OpenApiTools(password, platformCode, prefix, privateKey).buildRequest(content);
+			logger.info("发送请求："+buildRequest);
+			//发送请求并接收返回值
+			String response = HttpTools.postJson(url, buildRequest);
+			logger.info("接收回应："+response);
+			if(response.contains("<!DOCTYPE")){
+				logger.error("发票接口出现异常,请稍后重试！");
+				return false;
+			}
+			//将返回值解析得到返回的数据
+			String disponseResponse = new OpenApiTools(password, platformCode, prefix, privateKey).disposeResponse(response, ptPublicKey);
+			//将返回的数据封装为对象
+			EnterpriseRequest enterpriseRequest = DataChangeTools.gson2bean(disponseResponse, EnterpriseRequest.class);
+			//判断返回的错误码，如果不成功，返回false
+			if(enterpriseRequest.getCode() != "0000"){
+				logger.error("企业注册失败，错误码：" + enterpriseRequest.getCode());
+				logger.error("企业注册失败，错误原因：" + enterpriseRequest.getMsg());
+				return false;
+			}
+			//成功后，将操作类型改为1并更新数据
+			enterprise.setOperate_type(1);
+			enterpriseDao.update(enterprise);
+			logger.info("企业注册成功！");
+			return true;
+		} catch (Exception e) {
+			logger.error("企业注册失败，发生异常：");
+			e.printStackTrace();
+			return false;
+		}
+	}
+}

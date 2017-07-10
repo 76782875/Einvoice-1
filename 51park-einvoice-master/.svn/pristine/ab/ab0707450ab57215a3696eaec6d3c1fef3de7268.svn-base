@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.park.einvoice.dao.eih5.HasInvoiceDao">
+
+	<select id="selectHasInvoiceList" resultMap="getHasInvoiceListMap">
+	    SELECT DISTINCT invoice.invoice_req_serial_no, buyer_name, invoice_amount, LEFT(invoice.create_time, 16) invoice_time,  
+        CASE code WHEN '0000' THEN '1' ELSE '0' END invoice_status
+        FROM cc_ei_blue invoice
+        JOIN cc_ei_blue_items item
+        ON invoice.invoice_req_serial_no = item.invoice_req_serial_no 
+        LEFT JOIN (SELECT DISTINCT code, invoice_req_serial_no FROM cc_ei_blue_push outPush WHERE create_time = (
+                SELECT MAX(create_time) FROM cc_ei_blue_push WHERE invoice_req_serial_no = outPush.invoice_req_serial_no
+            )) push 
+        ON invoice.invoice_req_serial_no = push.invoice_req_serial_no 
+        LEFT JOIN cc_ei_tradeno_serialno no_in
+        ON invoice.invoice_req_serial_no = no_in.invoice_req_serial_no 
+        WHERE no_in.trade_no = '16010107054927827'
+		
+	</select>
+	
+	<resultMap type="hashmap" id="getHasInvoiceListMap">
+		<result property="invoiceReqSerialNo" column="invoice_req_serial_no" javaType="string"></result>
+		<result property="buyerName" column="buyer_name" javaType="string"></result>
+		<result property="invoiceAmount" column="invoice_amount" javaType="string"></result>
+		<result property="invoiceTime" column="invoice_time" javaType="string"></result>
+		<result property="invoiceStatus" column="invoice_status" javaType="string"></result>
+	</resultMap>
+	
+	<select id="selectHasInvoiceDetail" resultMap="getHasInvoiceDetailMap">
+		SELECT push.invoice_req_serial_no, download_url, invoice_img_url 
+		FROM cc_ei_blue_push push
+		INNER JOIN cc_ei_pdf_img pdf
+		ON push.invoice_req_serial_no = pdf.invoice_req_serial_no
+		WHERE push.invoice_req_serial_no = #{invoiceReqSerialNo} 
+		AND push.create_time = (
+		    SELECT MAX(create_time) FROM cc_ei_blue_push 
+		    WHERE cc_ei_blue_push.invoice_req_serial_no = #{invoiceReqSerialNo}
+		)
+	</select>
+		<!-- SELECT DISTINCT invoice.invoice_req_serial_no, buyer_name, invoice_amount, LEFT(invoice.create_time, 16) invoice_time,  
+	        CASE code WHEN '0000' THEN '1' ELSE '0' END invoice_status
+	        FROM cc_ei_blue invoice
+	        JOIN cc_ei_blue_items item
+	        ON invoice.invoice_req_serial_no = item.invoice_req_serial_no 
+	        LEFT JOIN cc_ei_blue_push push 
+	        ON invoice.invoice_req_serial_no = push.invoice_req_serial_no 
+	        LEFT JOIN cc_ei_tradeno_serialno no_in
+	        ON invoice.invoice_req_serial_no = no_in.invoice_req_serial_no 
+	        WHERE no_in.trade_no IN (
+	            SELECT order_num_pay FROM cp_order_pay_record 
+	            WHERE order_num = #{tradeNo}
+	        ) OR no_in.trade_no = #{tradeNo}
+	        AND push.create_time = (
+	            SELECT MAX(create_time) FROM cc_ei_blue_push 
+	            WHERE cc_ei_blue_push.invoice_req_serial_no = invoice.invoice_req_serial_no
+	        ) -->
+	
+	<resultMap type="hashmap" id="getHasInvoiceDetailMap">
+		<result property="invoiceReqSerialNo" column="invoice_req_serial_no" javaType="string"></result>
+		<result property="downloadUrl" column="download_url" javaType="string"></result>
+		<result property="invoiceImg" column="invoice_img_url" javaType="string"></result>
+	</resultMap>
+	
+</mapper>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.park.einvoice.dao.BlueInvoiceDao">
+
+	<insert id="insertRequest2PT">
+		INSERT INTO cc_blue_invoice(taxpayer_num,invoice_req_serial_no,buyer_name
+			<if test="buyerTaxpayerNum != null">,buyer_taxpayer_num</if>
+			<if test="buyerAddress != null">,buyer_address</if>
+			<if test="buyerTel != null">,buyer_tel</if>
+			<if test="buyerBankName != null">,buyer_bank_name</if>
+			<if test="buyerBankAccount != null">,buyer_bank_account</if>
+			<if test="sellerAddress != null">,seller_address</if>
+			<if test="sellerTel != null">,seller_tel</if>
+			<if test="sellerBankName != null">,seller_bank_name</if>
+			<if test="sellserBankAccount != null">,sellser_bank_account</if>
+			<if test="itemName != null">,item_name</if>
+			<if test="reviewerName != null">,reviewer_name</if>
+			<if test="drawerName != null">,drawer_name</if>
+			<if test="takerName != null">,taker_name</if>
+			<if test="takerTel != null">,taker_tel</if>
+			<if test="takerEmail != null">,taker_email</if>
+			<if test="casherName != null">,casher_name</if>
+		) VALUES(#{taxpayerNum},#{invoiceReqSerialNo},#{buyerName}
+			<if test="buyerTaxpayerNum != null">,#{buyerTaxpayerNum}</if>
+			<if test="buyerAddress != null">,#{buyerAddress}</if>
+			<if test="buyerTel != null">,#{buyerTel}</if>
+			<if test="buyerBankName != null">,#{buyerBankName}</if>
+			<if test="buyerBankAccount != null">,#{buyerBankAccount}</if>
+			<if test="sellerAddress != null">,#{sellerAddress}</if>
+			<if test="sellerTel != null">,#{sellerTel}</if>
+			<if test="sellerBankName != null">,#{sellerBankName}</if>
+			<if test="sellserBankAccount != null">,#{sellserBankAccount}</if>
+			<if test="itemName != null">,#{itemName}</if>
+			<if test="reviewerName != null">,#{reviewerName}</if>
+			<if test="drawerName != null">,#{drawerName}</if>
+			<if test="takerName != null">,#{takerName}</if>
+			<if test="takerTel != null">,#{takerTel}</if>
+			<if test="takerEmail != null">,#{takerEmail}</if>
+			<if test="casherName != null">,#{casherName}</if>
+		)
+	</insert>
+	
+	<insert id="insertRequestItem2PT">
+		INSERT INTO cc_blue_invoice_items(invoice_req_serial_no,goods_name,
+			tax_classification_code,quantity,unit_price,invoice_amount,tax_rate
+			<if test="specificationModel != null">,specification_model</if>
+			<if test="meteringUnit != null">,metering_unit</if>
+			<if test="discountAmount != null">,discount_amount</if>
+			<if test="discountRate != null">,discount_rate</if>
+			<if test="preferentialPolicyFlag != null">preferential_policy_flag</if>
+			<if test="vatSpecialManage != null">,vat_special_manage</if>
+			<if test="zeroTaxFlag != null">,zero_tax_flag</if>
+			<if test="includeTaxFlag != null">,include_tax_flag</if>
+		) VALUES(#{invoiceReqSerialNo},#{goodsName},#{taxClassificationCode},
+			#{quantity},#{unitPrice},#{invoiceAmount},#{taxRateValue}
+			<if test="specificationModel != null">,#{specificationModel}</if>
+			<if test="meteringUnit != null">,#{meteringUnit}</if>
+			<if test="discountAmount != null">,#{discountAmount}</if>
+			<if test="discountRate != null">,#{discountRate}</if>
+			<if test="preferentialPolicyFlag != null">,#{preferentialPolicyFlag}</if>
+			<if test="vatSpecialManage != null">,#{vatSpecialManage}</if>
+			<if test="zeroTaxFlag != null">,#{zeroTaxFlag}</if>
+			<if test="includeTaxFlag != null">,#{includeTaxFlag}</if>
+		)
+	</insert>
+	
+	<update id="insertResponse4PT">
+		UPDATE cc_blue_invoice 
+		<set>
+			<if test="qrCodePath != null">qr_code_url=#{qrCodePath},</if>
+			<if test="qrCode != null">qr_code=#{qrCode}</if>
+		</set>
+		WHERE invoice_req_serial_no=#{invoiceReqSerialNo}
+	</update>
+	
+</mapper>

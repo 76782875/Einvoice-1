@@ -1,0 +1,18 @@
+package com.park.einvoice.service;
+
+import org.springframework.stereotype.Repository;
+
+@Repository(value="blueInvoiceService")
+public interface BlueInvoiceService {
+	
+	/**
+	 * 获取蓝票
+	 * @return 返回结果JSON串
+	 */
+	public String blueInvoice(String requestJsonStr);
+
+	/**
+	 * 获取发票properties文件信息的方法
+	 */
+	void getInvoiceInfo();
+}

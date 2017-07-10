@@ -1,0 +1,35 @@
+package com.park.einvoice.dao;
+
+import java.io.Serializable;
+import java.util.List;
+
+import org.springframework.stereotype.Repository;
+
+import com.park.einvoice.dao.mybatis.BaseDao;
+import com.park.einvoice.dao.mybatis.MyBatisRepository;
+import com.park.einvoice.domain.Enterprise;
+
+@MyBatisRepository
+@Repository(value="enterpriseDao")
+public interface EnterpriseDao extends BaseDao<Enterprise, Serializable> {
+	
+	/**
+	 * 查询企业by企业编码
+	 * @param enterpriseCode 传入 企业编码(String)
+	 * @return 返回 企业对象(Enterprise)
+	 */
+	public Integer selectEnterpriseIdByCode(String enterpriseCode);
+
+	/**
+	 * 查询所有企业的企业编码
+	 * @return 返回 企业编码的集合(List<String>)
+	 */
+	public List<String> selectAllEnterpriseCode();
+
+	/**
+	 * 查询已注册企业的企业编码
+	 * @return 返回 已注册企业编码的合计(List<String>)
+	 */
+	public List<String> selectRegedEnterpriseCode();
+	
+}

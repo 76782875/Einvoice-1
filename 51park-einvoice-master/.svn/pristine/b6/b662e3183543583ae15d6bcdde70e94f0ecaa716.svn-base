@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.park.einvoice.dao.EnterpriseRegisterDao">
+
+	<select id="getId" resultType="int">
+		SELECT id FROM cc_ei_enterprise_invoice_register 
+		WHERE taxpayer_num = #{taxpayerNum}
+	</select>
+
+	<insert id="insertReg">
+		INSERT INTO cc_ei_enterprise_invoice_register(enterprise_code, taxpayer_num) 
+		VALUES(#{enterprise_code}, #{taxpayer_num})
+	</insert>
+	
+</mapper>

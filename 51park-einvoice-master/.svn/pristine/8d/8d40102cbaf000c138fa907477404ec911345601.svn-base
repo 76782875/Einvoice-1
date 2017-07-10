@@ -1,0 +1,21 @@
+package com.park.einvoice.common.constants;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class SignKeyConstants {
+	/**
+	 * 所有对接项目的名称以及对应的私钥
+	 */
+	public static Map< String, String>  keyMap =new HashMap<String, String>(){
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+		{
+			put("test","8257f71fc72d9e63911a052871fc4bed");
+			
+		}
+	};
+	
+}

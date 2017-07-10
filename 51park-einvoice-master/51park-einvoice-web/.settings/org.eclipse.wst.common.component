@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
+    <wb-module deploy-name="51park-einvoice-web">
+        <wb-resource deploy-path="/" source-path="/src/main/webapp" tag="defaultRootSource"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
+        <dependent-module archiveName="51park-einvoice-common.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/51park-einvoice-common/51park-einvoice-common">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="51park-einvoice-dao.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/51park-einvoice-dao/51park-einvoice-dao">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="51park-einvoice-domain.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/51park-einvoice-domain/51park-einvoice-domain">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="51park-einvoice-controller.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/51park-einvoice-controller/51park-einvoice-controller">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="51park-einvoice-service.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/51park-einvoice-service/51park-einvoice-service">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <property name="context-root" value="51park-einvoice-web"/>
+        <property name="java-output-path" value="/51park-einvoice-web/target/classes"/>
+    </wb-module>
+</project-modules>

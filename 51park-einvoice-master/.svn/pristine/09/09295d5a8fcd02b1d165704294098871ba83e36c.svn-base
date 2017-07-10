@@ -1,0 +1,23 @@
+package com.park.einvoice.dao;
+
+import java.util.List;
+
+public interface SerialNoDao {
+	
+	/**
+	 * 获取所有交易流水号
+	 * @return 返回交易流水号的集合 List<String>
+	 */
+	public List<String> selectAllSerialNo();
+	
+	/**
+	 * 删除某个交易流水号
+	 */
+	public void deleteSerialNo(String serialNo);
+
+	/**
+	 * 将新的交易流水号插入数据库
+	 * @param serialNo
+	 */
+	public void insertSerialNo(String serialNo);
+}

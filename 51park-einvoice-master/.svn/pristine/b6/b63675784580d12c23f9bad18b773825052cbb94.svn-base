@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.park.einvoice.dao.EnterpriseParkDao">
+
+	<select id="selectTaxpayerNumByParkId" resultType="String">
+		SELECT taxpayer_num FROM cc_enterprise WHERE enterprise_code = (
+			SELECT enterprise_code FROM cc_enterprise_park WHERE cp_park_id = #{parkId}
+		);
+	</select>
+	
+	<select id="selectEnterpriseNameByParkId" resultType="String">
+		SELECT enterprise_name FROM cc_enterprise WHERE enterprise_code = (
+			SELECT enterprise_code FROM cc_enterprise_park WHERE cp_park_id = #{parkId}
+		);
+	</select>
+	
+</mapper>
